@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { QrCode, List, FileUp, Check, X, Minus, Loader2, MapPin } from 'lucide-react';
+import { QrCode, List, FileUp, Check, X, Minus, Loader2, MapPin, TimerOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -39,6 +39,8 @@ const studentsData = [
   { id: '107', name: 'Michael Davis', status: 'present' },
 ];
 
+const QR_CODE_VALIDITY_SECONDS = 180; // 3 minutes
+
 export default function AttendancePage() {
   const [attendanceMode, setAttendanceMode] = useState('qr');
   const [selectedClass, setSelectedClass] = useState('cs101');
@@ -49,6 +51,9 @@ export default function AttendancePage() {
   const [hasLocationPermission, setHasLocationPermission] = useState<boolean | undefined>(undefined);
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+  const [qrCodeExpiry, setQrCodeExpiry] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(QR_CODE_VALIDITY_SECONDS);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -80,6 +85,28 @@ export default function AttendancePage() {
       }
     }
   }, [attendanceMode, toast]);
+  
+  useEffect(() => {
+    if (qrCodeExpiry && countdown > 0) {
+      timerRef.current = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setQrCodeData(null);
+      setQrCodeExpiry(null);
+      toast({
+        variant: 'destructive',
+        title: 'QR Code Expired',
+        description: 'Please generate a new QR code.',
+      });
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [qrCodeExpiry, countdown, toast]);
 
   const handleStatusChange = (studentId: string, status: 'present' | 'absent' | 'late') => {
     setStudents(
@@ -104,6 +131,8 @@ export default function AttendancePage() {
   }
 
   const handleGenerateQr = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+
     setIsGeneratingQr(true);
     if (!navigator.geolocation) {
       setHasLocationPermission(false);
@@ -128,11 +157,14 @@ export default function AttendancePage() {
           }
         });
         setQrCodeData(qrData);
-        // This is a mock. In a real app, you'd use a library to generate the QR code image from qrData.
+        const expiryTime = Date.now() + QR_CODE_VALIDITY_SECONDS * 1000;
+        setQrCodeExpiry(expiryTime);
+        setCountdown(QR_CODE_VALIDITY_SECONDS);
+        
         console.log("Generated QR Data:", qrData);
         toast({
           title: "QR Code Generated",
-          description: "Students can now scan the code for attendance.",
+          description: "Students can now scan the code for attendance. This code is valid for 3 minutes.",
         });
         setIsGeneratingQr(false);
       },
@@ -151,6 +183,12 @@ export default function AttendancePage() {
 
   const allPresent = students.every(s => s.status === 'present');
   const somePresent = students.some(s => s.status === 'present') && !allPresent;
+  
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
   const renderAttendanceMode = () => {
     switch (attendanceMode) {
@@ -175,9 +213,24 @@ export default function AttendancePage() {
                   <div className="flex flex-col items-center gap-2">
                     <QrCode className="w-32 h-32 text-primary" />
                     <span className="text-sm font-mono bg-background p-2 rounded-md">SCAN_ME</span>
+                     <div className="font-mono text-lg text-primary mt-2">
+                        Expires in: {formatTime(countdown)}
+                     </div>
                   </div>
                 ) : (
-                  <MapPin className="w-32 h-32 text-muted-foreground" />
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    {countdown === 0 ? (
+                      <>
+                        <TimerOff className="w-32 h-32" />
+                        <span className="font-semibold">QR Code Expired</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-32 h-32" />
+                        <span>Ready to generate</span>
+                      </>
+                    )}
+                  </div>
                 )}
             </div>
             <Button onClick={handleGenerateQr} disabled={isGeneratingQr}>
