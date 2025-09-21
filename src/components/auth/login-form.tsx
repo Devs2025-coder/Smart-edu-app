@@ -52,16 +52,26 @@ export function LoginForm({ role }: LoginFormProps) {
   const mappedRole = USER_ROLE_MAP[roleKey] || 'User';
 
 
-  if (role === 'teacher' || role === 'parent') {
+  if (role === 'teacher' || role === 'parent' || role === 'school-admin') {
     title = 'School Login';
     if (role === 'teacher') {
       description = 'Access your teacher account to manage tasks and attendance.';
-    } else {
+    } else if (role === 'parent') {
       description = "Access your parent account to view your child's progress.";
+    } else {
+        description = "Access your school admin account.";
     }
   } else {
      title = "College Login";
-     description = "Access your account to manage attendance, tasks, and schedules.";
+     if (role === 'professor') {
+        description = "Access your account to manage attendance, tasks, and schedules.";
+     } else if (role === 'student') {
+        description = "Access your account to view attendance, tasks, and schedules.";
+     } else if (role === 'college-admin') {
+        description = "Access your college admin account.";
+     } else {
+        description = "Access your account.";
+     }
   }
   
   const form = useForm<FormData>({
