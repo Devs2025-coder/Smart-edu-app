@@ -25,6 +25,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { USER_ROLE_MAP } from '@/lib/constants';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
@@ -44,6 +45,9 @@ export function LoginForm({ role }: LoginFormProps) {
 
   let title = "Login";
   let description = "Access your account.";
+  const roleKey = role || '';
+  const mappedRole = USER_ROLE_MAP[roleKey] || 'User';
+
 
   if (role === 'teacher' || role === 'parent') {
     title = 'School Login';
@@ -148,6 +152,12 @@ export function LoginForm({ role }: LoginFormProps) {
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
+             <p className="text-sm text-center text-muted-foreground">
+              Don&apos;t have an account?{' '}
+              <Link href={`/register/user?role=${role}`} className="font-medium text-primary hover:underline">
+                Register as a {mappedRole}
+              </Link>
+            </p>
             <Button variant="outline" className="w-full" asChild>
                 <Link href="/">Back to Home</Link>
             </Button>
