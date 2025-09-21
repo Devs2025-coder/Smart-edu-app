@@ -1,7 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, Mountain, MoveRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, Mountain, MoveRight, LogOut } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { NAV_LINKS, USER_ROLES } from '@/lib/constants';
+
+const PORTAL_PREFIXES = [
+  '/professor',
+  '/student',
+  '/college-admin',
+  '/school-admin',
+  '/teacher',
+  '/parent',
+  '/super-admin',
+];
 
 const LoginMenu = () => (
   <DropdownMenu>
@@ -32,6 +43,9 @@ const LoginMenu = () => (
 );
 
 export function Header() {
+  const pathname = usePathname();
+  const isInPortal = PORTAL_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
@@ -83,17 +97,27 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <div className="hidden md:flex items-center space-x-2">
-            <LoginMenu />
-            <Button asChild>
-              <Link href="/register">
-                Register <MoveRight className="ml-2 h-4 w-4" />
+          {isInPortal ? (
+            <Button variant="outline" asChild>
+              <Link href="/">
+                <LogOut className="mr-2 h-4 w-4" /> Logout
               </Link>
             </Button>
-          </div>
-          <div className="md:hidden">
-            <LoginMenu />
-          </div>
+          ) : (
+            <>
+              <div className="hidden md:flex items-center space-x-2">
+                <LoginMenu />
+                <Button asChild>
+                  <Link href="/register">
+                    Register <MoveRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="md:hidden">
+                <LoginMenu />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>
