@@ -1,10 +1,11 @@
+import { LoginForm } from "@/components/auth/login-form";
+
 export default function LoginPage() {
   return (
-    <div className="container mx-auto py-20 px-4">
-      <h1 className="text-4xl font-bold font-headline">Login</h1>
-      <p className="mt-4 text-lg text-muted-foreground">
-        Login to your EduTrack account.
-      </p>
+    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-md">
+        <LoginForm />
+      </div>
     </div>
   );
 }
