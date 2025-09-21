@@ -1,3 +1,76 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-background",
+      "description": "A modern classroom or university campus setting.",
+      "imageUrl": "https://picsum.photos/seed/1/1800/1200",
+      "imageHint": "education technology"
+    },
+    {
+      "id": "how-it-works-college-1",
+      "description": "Admin registering a college.",
+      "imageUrl": "https://picsum.photos/seed/2/400/300",
+      "imageHint": "person computer"
+    },
+    {
+      "id": "how-it-works-college-2",
+      "description": "Adding users to a system.",
+      "imageUrl": "https://picsum.photos/seed/3/400/300",
+      "imageHint": "team working"
+    },
+    {
+      "id": "how-it-works-college-3",
+      "description": "Professor using a QR code.",
+      "imageUrl": "https://picsum.photos/seed/4/400/300",
+      "imageHint": "phone qr"
+    },
+    {
+      "id": "how-it-works-college-4",
+      "description": "Student checking phone.",
+      "imageUrl": "https://picsum.photos/seed/5/400/300",
+      "imageHint": "student phone"
+    },
+     {
+      "id": "how-it-works-school-1",
+      "description": "Admin registering a school.",
+      "imageUrl": "https://picsum.photos/seed/6/400/300",
+      "imageHint": "teacher classroom"
+    },
+    {
+      "id": "how-it-works-school-2",
+      "description": "Adding users to a system.",
+      "imageUrl": "https://picsum.photos/seed/7/400/300",
+      "imageHint": "people chart"
+    },
+    {
+      "id": "how-it-works-school-3",
+      "description": "Teacher assigning tasks.",
+      "imageUrl": "https://picsum.photos/seed/8/400/300",
+      "imageHint": "teacher writing"
+    },
+    {
+      "id": "how-it-works-school-4",
+      "description": "Parent and child looking at tablet.",
+      "imageUrl": "https://picsum.photos/seed/9/400/300",
+      "imageHint": "parent child"
+    },
+    {
+      "id": "testimonial-1",
+      "description": "Avatar for Dr. Emily Carter",
+      "imageUrl": "https://picsum.photos/seed/10/40/40",
+      "imageHint": "person face"
+    },
+    {
+      "id": "testimonial-2",
+      "description": "Avatar for Mr. David Chen",
+      "imageUrl": "https://picsum.photos/seed/11/40/40",
+      "imageHint": "person face"
+    },
+    {
+      "id": "testimonial-3",
+      "description": "Avatar for Jessica Miller",
+      "imageUrl": "https://picsum.photos/seed/12/40/40",
+      "imageHint": "person face"
+    }
+  ]
 }

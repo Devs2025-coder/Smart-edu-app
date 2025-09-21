@@ -1,0 +1,10 @@
+export default function AboutPage() {
+  return (
+    <div className="container mx-auto py-20 px-4">
+      <h1 className="text-4xl font-bold font-headline">About EduTrack</h1>
+      <p className="mt-4 text-lg text-muted-foreground">
+        EduTrack is a modern solution for educational institutions to manage curriculum, track attendance, and enhance student productivity.
+      </p>
+    </div>
+  );
+}
