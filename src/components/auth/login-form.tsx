@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useRouter } from 'next/navigation';
 import {
   Form,
   FormControl,
@@ -42,6 +43,7 @@ interface LoginFormProps {
 export function LoginForm({ role }: LoginFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   let title = "Login";
   let description = "Access your account.";
@@ -75,9 +77,13 @@ export function LoginForm({ role }: LoginFormProps) {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     console.log({ ...data, role });
-    // In a real app, you'd handle success/error from API
-    // For now, we just stop the loader
     setIsSubmitting(false);
+
+    // Redirect based on role
+    if (role === 'professor') {
+      router.push('/professor/dashboard');
+    }
+    // TODO: Add redirects for other roles
   };
 
   return (
