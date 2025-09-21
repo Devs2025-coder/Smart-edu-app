@@ -95,6 +95,8 @@ export function LoginForm({ role }: LoginFormProps) {
       router.push('/professor/dashboard');
     } else if (role === 'student') {
       router.push('/student/dashboard');
+    } else if (role === 'college-admin') {
+        router.push('/college-admin/dashboard');
     }
     // TODO: Add redirects for other roles
   };
