@@ -20,15 +20,18 @@ import {
   LogOut,
   Settings,
   Users,
+  LineChart,
+  Bell
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [
   { href: '/professor/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/professor/courses', label: 'My Courses', icon: Book },
+  { href: '/professor/classes', label: 'Classes', icon: Book },
   { href: '/professor/attendance', label: 'Attendance', icon: CalendarCheck },
-  { href: '/professor/students', label: 'Students', icon: Users },
+  { href: '/professor/reports', label: 'Reports', icon: LineChart },
+  { href: '/professor/notifications', label: 'Notifications', icon: Bell },
   { href: '/professor/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -60,7 +63,7 @@ export default function ProfessorLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href)}
                   tooltip={{ children: item.label }}
                 >
                   <Link href={item.href}>

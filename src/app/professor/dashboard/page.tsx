@@ -6,24 +6,38 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Book, Calendar, Users } from 'lucide-react';
+import { Book, Calendar, Users, QrCode, Bell } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProfessorDashboardPage() {
   return (
     <div className="grid gap-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Courses
+              Today's Classes
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">
+              Classes scheduled for today
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Attendance Pending
             </CardTitle>
             <Book className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">2</div>
             <p className="text-xs text-muted-foreground">
-              Courses assigned for this semester
+              Classes needing attendance marked
             </p>
           </CardContent>
         </Card>
@@ -44,14 +58,14 @@ export default function ProfessorDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Upcoming Classes
+              Alerts
             </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">1</div>
             <p className="text-xs text-muted-foreground">
-              Classes scheduled for today
+              New notification from admin
             </p>
           </CardContent>
         </Card>
@@ -65,30 +79,24 @@ export default function ProfessorDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/professor/attendance">
-            <Button className="w-full justify-start">
+          <Button asChild>
+            <Link href="/professor/attendance">
               <Calendar className="mr-2 h-4 w-4" />
-              Take Attendance
-            </Button>
-          </Link>
-          <Link href="/professor/courses">
-            <Button variant="secondary" className="w-full justify-start">
-              <Book className="mr-2 h-4 w-4" />
-              View My Courses
-            </Button>
-          </Link>
-          <Link href="/professor/students">
-            <Button variant="secondary" className="w-full justify-start">
-              <Users className="mr-2 h-4 w-4" />
-              Manage Students
-            </Button>
-          </Link>
-          <Link href="/professor/settings">
-            <Button variant="secondary" className="w-full justify-start">
-               <ArrowRight className="mr-2 h-4 w-4" />
-               View All Activities
-            </Button>
-          </Link>
+              Mark Attendance
+            </Link>
+          </Button>
+           <Button asChild variant="secondary">
+            <Link href="/professor/attendance">
+                <QrCode className="mr-2 h-4 w-4" />
+                Generate QR
+            </Link>
+          </Button>
+          <Button asChild variant="secondary">
+             <Link href="/professor/reports">
+                <Users className="mr-2 h-4 w-4" />
+                View Reports
+            </Link>
+          </Button>
         </CardContent>
       </Card>
 
