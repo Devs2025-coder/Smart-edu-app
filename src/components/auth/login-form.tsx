@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -82,6 +83,8 @@ export function LoginForm({ role }: LoginFormProps) {
     // Redirect based on role
     if (role === 'professor') {
       router.push('/professor/dashboard');
+    } else if (role === 'student') {
+      router.push('/student/dashboard');
     }
     // TODO: Add redirects for other roles
   };
