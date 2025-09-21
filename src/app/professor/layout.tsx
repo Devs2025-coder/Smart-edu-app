@@ -21,7 +21,8 @@ import {
   Settings,
   Users,
   LineChart,
-  Bell
+  Bell,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,6 +31,7 @@ const menuItems = [
   { href: '/professor/dashboard', label: 'Dashboard', icon: Home },
   { href: '/professor/classes', label: 'Classes', icon: Book },
   { href: '/professor/attendance', label: 'Attendance', icon: CalendarCheck },
+  { href: '/professor/tasks', label: 'Tasks', icon: ClipboardList },
   { href: '/professor/reports', label: 'Reports', icon: LineChart },
   { href: '/professor/notifications', label: 'Notifications', icon: Bell },
   { href: '/professor/settings', label: 'Settings', icon: Settings },
