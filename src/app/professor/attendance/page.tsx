@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { QrCode, List, FileUp, Check, X, Minus, Loader2 } from 'lucide-react';
+import { QrCode, List, FileUp, Check, X, Minus, Loader2, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -46,6 +46,10 @@ export default function AttendancePage() {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
+  const [hasLocationPermission, setHasLocationPermission] = useState<boolean | undefined>(undefined);
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   
   useEffect(() => {
@@ -99,6 +103,52 @@ export default function AttendancePage() {
     });
   }
 
+  const handleGenerateQr = () => {
+    setIsGeneratingQr(true);
+    if (!navigator.geolocation) {
+      setHasLocationPermission(false);
+      toast({
+        variant: "destructive",
+        title: "Geolocation Not Supported",
+        description: "Your browser does not support geolocation.",
+      });
+      setIsGeneratingQr(false);
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setHasLocationPermission(true);
+        const qrData = JSON.stringify({
+          class: selectedClass,
+          timestamp: new Date().toISOString(),
+          geo: {
+            lat: position.coords.latitude,
+            long: position.coords.longitude,
+          }
+        });
+        setQrCodeData(qrData);
+        // This is a mock. In a real app, you'd use a library to generate the QR code image from qrData.
+        console.log("Generated QR Data:", qrData);
+        toast({
+          title: "QR Code Generated",
+          description: "Students can now scan the code for attendance.",
+        });
+        setIsGeneratingQr(false);
+      },
+      (error) => {
+        setHasLocationPermission(false);
+        console.error('Error getting location:', error);
+        toast({
+          variant: "destructive",
+          title: "Location Access Denied",
+          description: "Please enable location permissions in your browser settings to generate a QR code.",
+        });
+        setIsGeneratingQr(false);
+      }
+    );
+  };
+
   const allPresent = students.every(s => s.status === 'present');
   const somePresent = students.some(s => s.status === 'present') && !allPresent;
 
@@ -108,14 +158,31 @@ export default function AttendancePage() {
         return (
           <div className="text-center p-8 flex flex-col items-center justify-center gap-4">
             <h3 className="text-lg font-medium">Generate QR Code</h3>
-            <p className="text-muted-foreground">
-              Display a QR code for students to scan and mark their own attendance.
+            <p className="text-muted-foreground max-w-md">
+              Display a QR code for students to scan. Location access is required to ensure academic integrity.
             </p>
-            <div className="bg-muted w-64 h-64 flex items-center justify-center rounded-lg">
-                <QrCode className="w-32 h-32 text-muted-foreground" />
+             {hasLocationPermission === false && (
+                <Alert variant="destructive" className="mt-4 text-left">
+                    <AlertTitle>Location Access Required</AlertTitle>
+                    <AlertDescription>
+                        Please allow location access to generate a secure QR code for attendance.
+                    </AlertDescription>
+                </Alert>
+              )}
+            <div className="bg-muted w-64 h-64 flex items-center justify-center rounded-lg my-4">
+                {qrCodeData ? (
+                   // In a real app, this would be an <Image> component with the generated QR code
+                  <div className="flex flex-col items-center gap-2">
+                    <QrCode className="w-32 h-32 text-primary" />
+                    <span className="text-sm font-mono bg-background p-2 rounded-md">SCAN_ME</span>
+                  </div>
+                ) : (
+                  <MapPin className="w-32 h-32 text-muted-foreground" />
+                )}
             </div>
-            <Button>
-              <QrCode className="mr-2 h-4 w-4" /> Generate & Display QR
+            <Button onClick={handleGenerateQr} disabled={isGeneratingQr}>
+              {isGeneratingQr && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <QrCode className="mr-2 h-4 w-4" /> {qrCodeData ? 'Regenerate QR Code' : 'Generate & Display QR'}
             </Button>
           </div>
         );
