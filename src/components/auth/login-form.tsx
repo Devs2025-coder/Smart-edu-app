@@ -34,9 +34,28 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export function LoginForm() {
+interface LoginFormProps {
+  role?: string;
+}
+
+export function LoginForm({ role }: LoginFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  let title = "Login";
+  let description = "Access your account.";
+
+  if (role === 'teacher' || role === 'parent') {
+    title = 'School Login';
+    if (role === 'teacher') {
+      description = 'Access your teacher account to manage tasks and attendance.';
+    } else {
+      description = "Access your parent account to view your child's progress.";
+    }
+  } else {
+     title = "College Login";
+     description = "Access your account to manage attendance, tasks, and schedules.";
+  }
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -51,7 +70,7 @@ export function LoginForm() {
     setIsSubmitting(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log(data);
+    console.log({ ...data, role });
     // In a real app, you'd handle success/error from API
     // For now, we just stop the loader
     setIsSubmitting(false);
@@ -60,9 +79,9 @@ export function LoginForm() {
   return (
     <Card className="shadow-lg">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">College Login</CardTitle>
+        <CardTitle className="text-3xl font-bold">{title}</CardTitle>
         <CardDescription>
-          Access your account to manage attendance, tasks, and schedules.
+         {description}
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -75,7 +94,7 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="e.g., professor@university.edu" {...field} />
+                    <Input type="email" placeholder="e.g., user@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
