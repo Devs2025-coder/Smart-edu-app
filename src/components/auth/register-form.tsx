@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,9 +31,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { CheckCircle, Copy, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z
   .object({
@@ -91,6 +92,8 @@ export function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [institutionCode, setInstitutionCode] = useState('');
+  const { toast } = useToast();
 
 
   const form = useForm<FormData>({
@@ -128,8 +131,10 @@ export function RegisterForm() {
   
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
-    // Simulate API call
+    // Simulate API call and code generation
     await new Promise(resolve => setTimeout(resolve, 2000));
+    const generatedCode = `${data.institutionName.substring(0, 4).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
+    setInstitutionCode(generatedCode);
     console.log(data);
     setIsSubmitting(false);
     setIsSubmitted(true);
@@ -138,6 +143,14 @@ export function RegisterForm() {
   const onReset = () => {
     form.reset();
     setStep(1);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(institutionCode);
+    toast({
+      title: "Copied!",
+      description: "Institution code has been copied to your clipboard.",
+    });
   };
   
   if (isSubmitted) {
@@ -149,10 +162,21 @@ export function RegisterForm() {
           </div>
           <CardTitle className="text-2xl pt-4">Registration Submitted!</CardTitle>
           <CardDescription>
-            Thank you for registering! Your institution is pending approval. You will receive an email once approved by the Super Admin.
+            Your institution is pending approval. Please share the following code with your users for their registration.
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center">
+        <CardContent className="text-center space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">Your Institution Code</p>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <div className="text-2xl font-bold tracking-widest border-dashed border-2 rounded-md px-4 py-2">
+                {institutionCode}
+              </div>
+              <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                <Copy className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
           <Button asChild>
             <Link href="/">Back to Home</Link>
           </Button>

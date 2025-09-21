@@ -7,6 +7,7 @@ import * as z from 'zod';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -49,6 +50,7 @@ const PasswordStrength = ({ password }: { password?: string }) => {
 
 const formSchema = z
   .object({
+    institutionCode: z.string().min(1, 'Institution code is required.'),
     fullName: z.string().min(1, 'Full name is required.'),
     email: z.string().email('Invalid email address.'),
     password: z
@@ -83,6 +85,7 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      institutionCode: '',
       fullName: '',
       email: '',
       password: '',
@@ -156,6 +159,20 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <CardContent className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="institutionCode"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Institution Code*</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the code provided by your institution" {...field} />
+                      </FormControl>
+                      <FormDescription>This code connects you to your school or college.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="fullName"
