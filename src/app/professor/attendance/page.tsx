@@ -39,7 +39,7 @@ const studentsData = [
   { id: '107', name: 'Michael Davis', status: 'present' },
 ];
 
-const QR_CODE_VALIDITY_SECONDS = 180; // 3 minutes
+const QR_CODE_VALIDITY_SECONDS = 20;
 
 export default function AttendancePage() {
   const [attendanceMode, setAttendanceMode] = useState('qr');
@@ -164,7 +164,7 @@ export default function AttendancePage() {
         console.log("Generated QR Data:", qrData);
         toast({
           title: "QR Code Generated",
-          description: "Students can now scan the code for attendance. This code is valid for 3 minutes.",
+          description: "Students can now scan the code for attendance. This code is valid for 20 seconds.",
         });
         setIsGeneratingQr(false);
       },
