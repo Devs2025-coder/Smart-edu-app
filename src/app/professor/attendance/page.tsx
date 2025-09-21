@@ -47,7 +47,6 @@ export default function AttendancePage() {
   const [students, setStudents] = useState(studentsData);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
   const [hasLocationPermission, setHasLocationPermission] = useState<boolean | undefined>(undefined);
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
@@ -55,37 +54,6 @@ export default function AttendancePage() {
   const [countdown, setCountdown] = useState(QR_CODE_VALIDITY_SECONDS);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  
-  useEffect(() => {
-    if (attendanceMode === 'qr-scan') {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({video: true});
-          setHasCameraPermission(true);
-
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings to use this feature.',
-          });
-        }
-      };
-      getCameraPermission();
-    } else {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-    }
-  }, [attendanceMode, toast]);
-  
   useEffect(() => {
     if (qrCodeExpiry && countdown > 0) {
       timerRef.current = setTimeout(() => {
@@ -309,26 +277,6 @@ export default function AttendancePage() {
             </div>
           </div>
         );
-      case 'qr-scan':
-        return (
-           <div className="p-8 flex flex-col items-center justify-center gap-4">
-             <h3 className="text-lg font-medium">Scan Student QR Code</h3>
-             <p className="text-muted-foreground max-w-md text-center">
-              Use the camera to scan a student's QR code from their ID card or mobile device to mark them present.
-            </p>
-            <div className="w-full max-w-md">
-              <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline/>
-              {hasCameraPermission === false && (
-                <Alert variant="destructive" className="mt-4">
-                    <AlertTitle>Camera Access Required</AlertTitle>
-                    <AlertDescription>
-                        Please allow camera access in your browser to use this feature.
-                    </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </div>
-        )
       default:
         return null;
     }
@@ -362,7 +310,6 @@ export default function AttendancePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="qr">Generate QR Code</SelectItem>
-                <SelectItem value="qr-scan">Scan Student QR</SelectItem>
                 <SelectItem value="manual">Manual List</SelectItem>
                 <SelectItem value="bulk">Bulk Upload</SelectItem>
               </SelectContent>
