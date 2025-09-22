@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Home,
   LogOut,
+  Mountain,
   Settings,
   Users,
   PlusCircle
@@ -41,6 +42,10 @@ export default function CollegeAdminLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
+          <div className="flex items-center gap-2 border-b p-2">
+              <Mountain className="h-6 w-6" />
+              <span className="text-lg font-semibold">EduTrack</span>
+          </div>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage src="https://picsum.photos/seed/admin/40/40" />

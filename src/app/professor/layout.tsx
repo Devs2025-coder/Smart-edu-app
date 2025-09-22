@@ -19,7 +19,7 @@ import {
   Home,
   LogOut,
   Settings,
-  Users,
+  Mountain,
   LineChart,
   ClipboardList,
 } from 'lucide-react';
@@ -46,6 +46,10 @@ export default function ProfessorLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
+           <div className="flex items-center gap-2 border-b p-2">
+              <Mountain className="h-6 w-6" />
+              <span className="text-lg font-semibold">EduTrack</span>
+          </div>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage src="https://picsum.photos/seed/prof/40/40" />

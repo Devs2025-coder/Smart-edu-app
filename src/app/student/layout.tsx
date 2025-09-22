@@ -23,6 +23,7 @@ import {
   Bell,
   ClipboardList,
   QrCode,
+  Mountain,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -48,6 +49,10 @@ export default function StudentLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
+           <div className="flex items-center gap-2 border-b p-2">
+              <Mountain className="h-6 w-6" />
+              <span className="text-lg font-semibold">EduTrack</span>
+          </div>
           <div className="flex items-center gap-3 p-2">
             <Avatar>
               <AvatarImage src="https://picsum.photos/seed/student/40/40" />
