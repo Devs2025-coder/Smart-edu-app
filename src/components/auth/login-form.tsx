@@ -101,6 +101,8 @@ export function LoginForm({ role }: LoginFormProps) {
       router.push('/teacher/dashboard');
     } else if (role === 'parent') {
       router.push('/parent/dashboard');
+    } else if (role === 'school-admin') {
+        router.push('/school-admin/dashboard');
     }
     // TODO: Add redirects for other roles
   };

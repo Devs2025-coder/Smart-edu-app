@@ -98,6 +98,16 @@ const getPortalInfo = (pathname: string) => {
       logoutUrl: '/login?role=parent',
     };
   }
+  if (pathname.startsWith('/school-admin')) {
+    return {
+      role: 'school-admin',
+      name: 'School Admin',
+      avatarUrl: 'https://picsum.photos/seed/school-admin/40/40',
+      avatarFallback: 'SA',
+      settingsUrl: '/school-admin/settings',
+      logoutUrl: '/login?role=school-admin',
+    };
+  }
   return null;
 };
 
