@@ -78,6 +78,8 @@ export default function CollegeAdminSettingsPage() {
         'Mechanical Engineering',
     ]);
     const [newBranch, setNewBranch] = useState('');
+    const [selectedYear, setSelectedYear] = useState('2024-2025');
+
     
     const profileForm = useForm<ProfileFormData>({
         resolver: zodResolver(profileFormSchema),
@@ -136,6 +138,13 @@ export default function CollegeAdminSettingsPage() {
     const handleDeleteBranch = (branchToDelete: string) => {
         setBranches(branches.filter(b => b !== branchToDelete));
         toast({ title: 'Success', description: `Branch "${branchToDelete}" has been removed.` });
+    };
+
+    const handleSetActiveYear = () => {
+        toast({
+            title: 'Academic Year Updated',
+            description: `The active academic year has been set to ${selectedYear}.`,
+        });
     };
 
 
@@ -297,7 +306,7 @@ export default function CollegeAdminSettingsPage() {
                                         <CardTitle className="text-lg">Academic Year</CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex items-center gap-4">
-                                        <Select defaultValue="2024-2025">
+                                        <Select value={selectedYear} onValueChange={setSelectedYear}>
                                             <SelectTrigger className="w-[200px]">
                                                 <SelectValue/>
                                             </SelectTrigger>
@@ -306,7 +315,7 @@ export default function CollegeAdminSettingsPage() {
                                                 <SelectItem value="2023-2024">2023-2024</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <Button disabled={isSaving}>Set Active Year</Button>
+                                        <Button onClick={handleSetActiveYear}>Set Active Year</Button>
                                     </CardContent>
                                 </Card>
                                 <Card>
