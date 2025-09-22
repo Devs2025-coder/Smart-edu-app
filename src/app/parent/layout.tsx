@@ -61,11 +61,11 @@ export default function ParentLayout({
                   asChild
                   isActive={pathname.startsWith(item.href)}
                   tooltip={{ children: item.label }}
+                  href={item.href}
+                  as={Link}
                 >
-                  <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
@@ -74,11 +74,14 @@ export default function ParentLayout({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={{ children: 'Logout' }}>
-                <Link href="/login?role=parent">
+              <SidebarMenuButton 
+                asChild 
+                tooltip={{ children: 'Logout' }}
+                href="/login?role=parent"
+                as={Link}
+                >
                   <LogOut />
                   <span>Logout</span>
-                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
