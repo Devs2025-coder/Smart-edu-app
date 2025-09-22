@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search, Send, Paperclip } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 const parents = [
   { id: 1, name: 'Mr. & Mrs. Sharma', child: 'Aarav', avatar: 'AS', lastMessage: "Thank you for the update!", online: true },
@@ -27,7 +28,7 @@ const parents = [
   { id: 5, name: 'Mr. Patel', child: 'Advik', avatar: 'AP', lastMessage: "Can we schedule a meeting?", online: false },
 ];
 
-const messages = [
+const initialMessages = [
     { sender: 'teacher', text: "Hi Mr. & Mrs. Sharma, just a reminder that Aarav's science project is due this Friday. He's made great progress in class!", timestamp: "10:30 AM" },
     { sender: 'parent', text: "Thank you for the update! We'll make sure he completes it on time.", timestamp: "10:32 AM" },
 ];
@@ -35,6 +36,36 @@ const messages = [
 
 export default function TeacherParentCommunicationPage() {
     const [selectedParent, setSelectedParent] = useState(parents[0]);
+    const [messages, setMessages] = useState(initialMessages);
+    const [newMessage, setNewMessage] = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
+    
+    const handleSendMessage = () => {
+        if (newMessage.trim() === '') return;
+
+        const message = {
+            sender: 'teacher',
+            text: newMessage,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages([...messages, message]);
+        setNewMessage('');
+    };
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            toast({
+                title: 'File Attached',
+                description: `${file.name} is ready to be sent.`,
+            });
+        }
+    };
+    
+    const handleAttachClick = () => {
+        fileInputRef.current?.click();
+    };
 
   return (
     <div className="grid gap-6">
@@ -107,13 +138,30 @@ export default function TeacherParentCommunicationPage() {
 
                             <div className="p-4 border-t">
                                 <div className="relative">
-                                    <Textarea placeholder="Type a message..." className="pr-24"/>
+                                    <Textarea 
+                                        placeholder="Type a message..." 
+                                        className="pr-24"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSendMessage();
+                                            }
+                                        }}
+                                    />
+                                     <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        onChange={handleFileSelect}
+                                    />
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                                        <Button variant="ghost" size="icon">
+                                        <Button variant="ghost" size="icon" onClick={handleAttachClick}>
                                             <Paperclip className="h-5 w-5"/>
                                             <span className="sr-only">Attach file</span>
                                         </Button>
-                                        <Button size="sm">
+                                        <Button size="sm" onClick={handleSendMessage}>
                                             <Send className="h-4 w-4 mr-2"/> Send
                                         </Button>
                                     </div>
