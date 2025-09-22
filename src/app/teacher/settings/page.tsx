@@ -38,6 +38,7 @@ import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import Image from "next/image"
 
 const profileFormSchema = z.object({
   fullName: z.string().min(1, "Full name is required."),
@@ -74,6 +75,7 @@ export default function TeacherSettingsPage() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
 
     const profileForm = useForm<ProfileFormData>({
         resolver: zodResolver(profileFormSchema),
@@ -102,6 +104,16 @@ export default function TeacherSettingsPage() {
             emailNotifications: true,
         },
     });
+
+     const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+        const file = e.target.files ? e.target.files[0] : null;
+        field.onChange(file);
+        if (file) {
+            setProfilePhotoPreview(URL.createObjectURL(file));
+        } else {
+            setProfilePhotoPreview(null);
+        }
+    };
 
     const onProfileSubmit = async (data: ProfileFormData) => {
         setIsSavingProfile(true);
@@ -204,7 +216,12 @@ export default function TeacherSettingsPage() {
                                                   render={({ field }) => (
                                                     <FormItem>
                                                       <FormLabel>Profile Photo</FormLabel>
-                                                      <FormControl><Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} /></FormControl>
+                                                        {profilePhotoPreview && (
+                                                            <div className="w-24 h-24 rounded-full overflow-hidden">
+                                                                <Image src={profilePhotoPreview} alt="Profile preview" width={96} height={96} className="object-cover" />
+                                                            </div>
+                                                        )}
+                                                      <FormControl><Input type="file" accept="image/*" onChange={(e) => handleProfilePhotoChange(e, field)} /></FormControl>
                                                       <FormDescription>Upload a new profile picture. Recommended size: 200x200px.</FormDescription>
                                                       <FormMessage />
                                                     </FormItem>
@@ -468,5 +485,7 @@ export default function TeacherSettingsPage() {
     </div>
   );
 }
+
+    
 
     
