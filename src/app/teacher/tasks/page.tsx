@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { CalendarIcon, Loader2, Bot, Lightbulb, BookOpenCheck } from 'lucide-react';
+import { CalendarIcon, Loader2, Bot, Lightbulb, BookOpenCheck, ClipboardList } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
