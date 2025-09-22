@@ -425,17 +425,17 @@ export default function StudentSettingsPage() {
                                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                                     <div className="space-y-0.5">
                                         <p className="text-base font-medium">Active Sessions</p>
-                                        <p className="text-sm text-muted-foreground">View and manage devices logged into your account.</p>
+                                        <p className="text-sm text-muted-foreground">You can only be logged in on one device at a time.</p>
                                     </div>
                                     <Dialog>
                                         <DialogTrigger asChild>
-                                            <Button variant="secondary">View Sessions</Button>
+                                            <Button variant="secondary">View Session</Button>
                                         </DialogTrigger>
                                         <DialogContent>
                                             <DialogHeader>
-                                                <DialogTitle>Active Sessions</DialogTitle>
+                                                <DialogTitle>Active Session</DialogTitle>
                                                 <DialogDescription>
-                                                    Here are the devices currently logged into your account.
+                                                    This is the device currently logged into your account.
                                                 </DialogDescription>
                                             </DialogHeader>
                                             <div className="space-y-4 py-4">
@@ -449,19 +449,7 @@ export default function StudentSettingsPage() {
                                                     </div>
                                                     <Button variant="link" className="text-primary pr-0">Sign out</Button>
                                                 </div>
-                                                <Separator />
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-4">
-                                                        <Smartphone className="h-6 w-6 text-foreground" />
-                                                        <div>
-                                                            <p className="font-medium">Safari on iPhone</p>
-                                                            <p className="text-sm text-muted-foreground">2 hours ago</p>
-                                                        </div>
-                                                    </div>
-                                                     <Button variant="link" className="text-primary pr-0">Sign out</Button>
-                                                </div>
                                             </div>
-                                             <Button className="w-full" variant="destructive">Sign out of all other sessions</Button>
                                         </DialogContent>
                                     </Dialog>
                                 </div>
@@ -484,4 +472,5 @@ export default function StudentSettingsPage() {
   );
 }
 
+    
     
