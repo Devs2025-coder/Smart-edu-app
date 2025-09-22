@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const teachersData = [
   { id: 'T101', name: 'Ms. Priya Sharma', subject: 'Math, Science', class: '6A', contact: 'p.sharma@school.edu', status: 'Active', avatar: 'PS' },
@@ -46,6 +47,14 @@ const parentsData = [
 export default function ManageUsersPage() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'teachers';
+  const { toast } = useToast();
+
+  const handleAction = (action: string, user: { name: string }) => {
+    toast({
+      title: `${action} User`,
+      description: `The action to ${action.toLowerCase()} user "${user.name}" has been triggered.`,
+    });
+  };
   
   return (
     <div className="grid gap-6">
@@ -114,9 +123,9 @@ export default function ManageUsersPage() {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                                <DropdownMenuItem><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('Edit', prof)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('View', prof)}><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('Remove', prof)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -185,9 +194,9 @@ export default function ManageUsersPage() {
                             <DropdownMenu>
                                <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                                <DropdownMenuItem><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('Edit', student)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('View', student)}><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('Remove', student)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -230,9 +239,9 @@ export default function ManageUsersPage() {
                             <DropdownMenu>
                                <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                                <DropdownMenuItem><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('Edit', parent)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('View', parent)}><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleAction('Remove', parent)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
