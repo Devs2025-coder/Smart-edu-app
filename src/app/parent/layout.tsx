@@ -57,16 +57,16 @@ export default function ParentLayout({
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref legacyBehavior>
-                  <SidebarMenuButton
-                    as="a"
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={{ children: item.label }}
-                  >
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith(item.href)}
+                  tooltip={{ children: item.label }}
+                >
+                  <Link href={item.href}>
                       <item.icon />
                       <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -74,15 +74,15 @@ export default function ParentLayout({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/login?role=parent" passHref legacyBehavior>
-                <SidebarMenuButton 
-                  as="a"
-                  tooltip={{ children: 'Logout' }}
-                  >
-                    <LogOut />
-                    <span>Logout</span>
-                </SidebarMenuButton>
-              </Link>
+              <SidebarMenuButton
+                asChild
+                tooltip={{ children: 'Logout' }}
+                >
+                <Link href="/login?role=parent">
+                  <LogOut />
+                  <span>Logout</span>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
