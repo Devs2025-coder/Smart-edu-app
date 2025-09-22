@@ -27,12 +27,26 @@ export type PersonalizedTaskSuggestionsInput = z.infer<
 >;
 
 const PersonalizedTaskSuggestionsOutputSchema = z.object({
-  taskSuggestions: z
-    .string()
-    .describe('A list of personalized task suggestions for the student.'),
-  reasoning: z
-    .string()
-    .describe('The reasoning behind the task suggestions.'),
+  interestBasedSuggestions: z.object({
+    suggestions: z
+      .string()
+      .describe(
+        'A list of personalized task suggestions for the student based on their interests and career goals.'
+      ),
+    reasoning: z
+      .string()
+      .describe('The reasoning behind the interest-based task suggestions.'),
+  }),
+  weaknessBasedSuggestions: z.object({
+    suggestions: z
+      .string()
+      .describe(
+        'A list of personalized task suggestions for the student based on their weaknesses.'
+      ),
+    reasoning: z
+      .string()
+      .describe('The reasoning behind the weakness-based task suggestions.'),
+  }),
 });
 
 export type PersonalizedTaskSuggestionsOutput = z.infer<
@@ -49,17 +63,20 @@ const prompt = ai.definePrompt({
   name: 'personalizedTaskSuggestionsPrompt',
   input: {schema: PersonalizedTaskSuggestionsInputSchema},
   output: {schema: PersonalizedTaskSuggestionsOutputSchema},
-  prompt: `You are an AI assistant designed to provide personalized task suggestions to students based on their performance and curriculum progress.
+  prompt: `You are an AI assistant designed to provide personalized task suggestions to students.
 
   Analyze the following information about the student:
-
   Student Profile: {{{studentProfile}}}
   Curriculum Progress: {{{curriculumProgress}}}
   Recent Activities: {{{recentActivities}}}
 
-  Based on this information, suggest a list of personalized tasks that will help the student improve their learning experience. Explain the reasoning behind each task suggestion.
+  Based on this information, generate two distinct sets of personalized tasks:
+  1. Interest-Based Suggestions: Create tasks that align with the student's interests and career goals to foster passion and motivation.
+  2. Weakness-Based Suggestions: Create tasks that directly address the student's areas of weakness to help them improve academically.
 
-  Output the task suggestions and reasoning in a structured format.
+  For each set of suggestions, provide a clear reasoning for why these tasks are recommended.
+
+  Output the suggestions and reasoning in the structured format defined in the output schema.
   `,
 });
 

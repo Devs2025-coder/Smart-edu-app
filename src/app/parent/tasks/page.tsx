@@ -37,6 +37,8 @@ import {
   BookOpen,
   Search,
   BookOpenCheck,
+  Rocket,
+  Wrench,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
@@ -349,25 +351,48 @@ export default function ParentTasksPage() {
                     </div>
                   )}
                   {aiSuggestions && (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold text-lg flex items-center">
-                          <Search className="mr-2 h-5 w-5 text-primary" />
-                          Reasoning
+                    <div className="space-y-8">
+                       <div>
+                        <h3 className="font-semibold text-lg flex items-center mb-2">
+                          <Rocket className="mr-2 h-5 w-5 text-primary" />
+                          Interest-Based Suggestions
                         </h3>
-                        <p className="text-muted-foreground text-sm mt-1">
-                          {aiSuggestions.reasoning}
-                        </p>
+                        <div className="space-y-4 text-sm p-4 rounded-md border bg-muted/20">
+                          <div>
+                            <h4 className="font-medium flex items-center"><Search className="mr-2 h-4 w-4 text-primary/80" />Reasoning</h4>
+                             <p className="text-muted-foreground mt-1">
+                              {aiSuggestions.interestBasedSuggestions.reasoning}
+                            </p>
+                          </div>
+                          <Separator/>
+                          <div>
+                             <h4 className="font-medium flex items-center"><BookOpenCheck className="mr-2 h-4 w-4 text-primary/80" />Suggestions</h4>
+                             <p className="text-muted-foreground mt-1 whitespace-pre-wrap">
+                              {aiSuggestions.interestBasedSuggestions.suggestions}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <Separator />
                       <div>
-                        <h3 className="font-semibold text-lg flex items-center">
-                          <BookOpenCheck className="mr-2 h-5 w-5 text-primary" />
-                          Suggestions
+                        <h3 className="font-semibold text-lg flex items-center mb-2">
+                          <Wrench className="mr-2 h-5 w-5 text-primary" />
+                          Weakness-Based Suggestions
                         </h3>
-                        <p className="text-muted-foreground text-sm mt-1 whitespace-pre-wrap">
-                          {aiSuggestions.taskSuggestions}
-                        </p>
+                         <div className="space-y-4 text-sm p-4 rounded-md border bg-muted/20">
+                          <div>
+                            <h4 className="font-medium flex items-center"><Search className="mr-2 h-4 w-4 text-primary/80" />Reasoning</h4>
+                             <p className="text-muted-foreground mt-1">
+                              {aiSuggestions.weaknessBasedSuggestions.reasoning}
+                            </p>
+                          </div>
+                          <Separator/>
+                          <div>
+                             <h4 className="font-medium flex items-center"><BookOpenCheck className="mr-2 h-4 w-4 text-primary/80" />Suggestions</h4>
+                             <p className="text-muted-foreground mt-1 whitespace-pre-wrap">
+                              {aiSuggestions.weaknessBasedSuggestions.suggestions}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
