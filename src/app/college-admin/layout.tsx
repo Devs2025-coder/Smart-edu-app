@@ -27,7 +27,7 @@ import { Header } from '@/components/layout/header';
 const menuItems = [
   { href: '/college-admin/dashboard', label: 'Dashboard', icon: Home },
   { href: '/college-admin/manage-users', label: 'Manage Users', icon: Users },
-  { href: '/college-admin/add-user', label: 'Add User', icon: PlusCircle },
+  { href: '/college/add-user', label: 'Add User', icon: PlusCircle },
   { href: '/college-admin/settings', label: 'Settings', icon: Settings },
 ];
 
