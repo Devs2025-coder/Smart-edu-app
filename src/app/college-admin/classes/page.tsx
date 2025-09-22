@@ -144,6 +144,13 @@ export default function ClassesPage() {
     setEditingPeriod(period);
     setIsDialogOpen(true);
   };
+  
+  const handlePublishTimetable = () => {
+    toast({
+      title: 'Timetable Published',
+      description: 'The schedule has been successfully published and is now visible to students and professors.',
+    });
+  };
 
   const ClassCell = ({ period, day, time }) => {
     if (!period) {
@@ -300,7 +307,7 @@ export default function ClassesPage() {
                             </Select>
                             <div className="flex-1" />
                             <Button onClick={() => handleOpenDialog()} variant="outline"><PlusCircle className="mr-2 h-4 w-4"/>Add Period</Button>
-                            <Button><Clock className="mr-2 h-4 w-4"/>Publish Timetable</Button>
+                            <Button onClick={handlePublishTimetable}><Clock className="mr-2 h-4 w-4"/>Publish Timetable</Button>
                         </div>
                         <div className="border rounded-lg overflow-x-auto">
                             <Table>
