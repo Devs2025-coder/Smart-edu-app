@@ -30,12 +30,14 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Phone, Building, Briefcase, Calendar, KeyRound, Bell, Shield, Loader2, Eye, EyeOff } from "lucide-react"
+import { User, Mail, Phone, Building, Briefcase, Calendar, KeyRound, Bell, Shield, Loader2, Eye, EyeOff, Laptop, Smartphone, LogOut } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const profileFormSchema = z.object({
   fullName: z.string().min(1, "Full name is required."),
@@ -386,14 +388,66 @@ export default function SettingsPage() {
                                         <p className="text-base font-medium">Two-Factor Authentication</p>
                                         <p className="text-sm text-muted-foreground">Add an extra layer of security to your account.</p>
                                     </div>
-                                    <Button>Enable</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button>Enable</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>Feature Unavailable</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Two-Factor Authentication requires backend server configuration and cannot be enabled from this interface. Please contact your administrator for assistance.
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogAction>OK</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                                     <div className="space-y-0.5">
                                         <p className="text-base font-medium">Active Sessions</p>
                                         <p className="text-sm text-muted-foreground">View and manage devices logged into your account.</p>
                                     </div>
-                                    <Button variant="secondary">View Sessions</Button>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="secondary">View Sessions</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Active Sessions</DialogTitle>
+                                                <DialogDescription>
+                                                    Here are the devices currently logged into your account.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="space-y-4 py-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <Laptop className="h-6 w-6 text-foreground" />
+                                                        <div>
+                                                            <p className="font-medium">Chrome on Windows</p>
+                                                            <p className="text-sm text-muted-foreground">Current session</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button variant="link" className="text-primary pr-0">Sign out</Button>
+                                                </div>
+                                                <Separator />
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <Smartphone className="h-6 w-6 text-foreground" />
+                                                        <div>
+                                                            <p className="font-medium">Safari on iPhone</p>
+                                                            <p className="text-sm text-muted-foreground">2 hours ago</p>
+                                                        </div>
+                                                    </div>
+                                                     <Button variant="link" className="text-primary pr-0">Sign out</Button>
+                                                </div>
+                                            </div>
+                                             <Button className="w-full" variant="destructive">Sign out of all other sessions</Button>
+                                        </DialogContent>
+                                    </Dialog>
+
                                 </div>
                                 <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                                     <div className="space-y-0.5">
@@ -413,5 +467,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
