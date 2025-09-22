@@ -60,20 +60,42 @@ export default function ClassesPage() {
   const [editingPeriod, setEditingPeriod] = useState(null);
 
   const handleSavePeriod = (periodData) => {
-    // This is a simplified save function. In a real app, this would be more complex.
-    const { day, time, ...rest } = periodData;
-    const timeIndex = scheduleData.findIndex(row => row.time === time);
+    setScheduleData(currentSchedule => {
+        const { day, time, ...rest } = periodData;
+        const originalTime = editingPeriod?.time;
+        let newScheduleData = [...currentSchedule];
 
-    if (timeIndex !== -1) {
-      const newScheduleData = [...scheduleData];
-      newScheduleData[timeIndex] = {
-        ...newScheduleData[timeIndex],
-        [day]: { ...rest }
-      };
-      setScheduleData(newScheduleData);
-    }
+        // If the time was edited and it's different from the original
+        if (originalTime && originalTime !== time) {
+            // Remove the period from the old time slot
+            const oldTimeIndex = newScheduleData.findIndex(row => row.time === originalTime);
+            if (oldTimeIndex !== -1) {
+                newScheduleData[oldTimeIndex][editingPeriod.day] = null;
+            }
+        }
+
+        const targetTimeIndex = newScheduleData.findIndex(row => row.time === time);
+
+        if (targetTimeIndex !== -1) {
+            // Time slot already exists, update it
+            newScheduleData[targetTimeIndex] = {
+                ...newScheduleData[targetTimeIndex],
+                [day]: { ...rest }
+            };
+        } else {
+            // New time slot, create a new row
+            const newRow = { time, M: null, T: null, W: null, Th: null, F: null };
+            newRow[day] = { ...rest };
+            newScheduleData.push(newRow);
+            // Sort by time
+            newScheduleData.sort((a, b) => a.time.localeCompare(b.time));
+        }
+
+        return newScheduleData;
+    });
     setEditingPeriod(null);
-  };
+};
+
 
   const handleDeletePeriod = (day, time) => {
     const timeIndex = scheduleData.findIndex(row => row.time === time);

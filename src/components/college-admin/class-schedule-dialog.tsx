@@ -36,7 +36,7 @@ const formSchema = z.object({
   prof: z.string().min(1, 'Professor is required.'),
   room: z.string().min(1, 'Room/Lab is required.'),
   day: z.string().min(1, 'Day is required.'),
-  time: z.string().min(1, 'Time slot is required.'),
+  time: z.string().min(1, 'Time slot is required.').regex(/^\d{2}:\d{2} - \d{2}:\d{2}$/, 'Time must be in HH:mm - HH:mm format.'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -49,7 +49,7 @@ const daysOfWeek = [
   { value: 'F', label: 'Friday' },
 ];
 
-export function ClassScheduleDialog({ isOpen, onOpenChange, onSave, periodData, timeSlots }) {
+export function ClassScheduleDialog({ isOpen, onOpenChange, onSave, periodData }) {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -154,26 +154,17 @@ export function ClassScheduleDialog({ isOpen, onOpenChange, onSave, periodData, 
                 )}
                 />
                  <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
+                  control={form.control}
+                  name="time"
+                  render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {timeSlots.map(slot => (
-                            <SelectItem key={slot} value={slot}>{slot}</SelectItem>
-                          ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
+                      <FormLabel>Time</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 09:00 - 10:00" {...field} />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
-                )}
+                  )}
                 />
             </div>
             <DialogFooter>
@@ -186,4 +177,3 @@ export function ClassScheduleDialog({ isOpen, onOpenChange, onSave, periodData, 
     </Dialog>
   );
 }
-
