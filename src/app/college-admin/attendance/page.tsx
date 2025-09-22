@@ -31,6 +31,8 @@ import { Calendar as CalendarIcon, Download, UserCheck, UserX, Clock } from 'luc
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import Papa from 'papaparse';
+import { useToast } from '@/hooks/use-toast';
 
 const attendanceData = {
     'cs-3-a': {
@@ -51,6 +53,7 @@ const attendanceData = {
 export default function AttendanceMonitoringPage() {
     const [selectedClass, setSelectedClass] = useState('cs-3-a');
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date('2024-10-21'));
+    const { toast } = useToast();
     
     const currentData = selectedDate ? attendanceData[selectedClass]?.[format(selectedDate, 'yyyy-MM-dd')] || [] : [];
     
@@ -72,6 +75,39 @@ export default function AttendanceMonitoringPage() {
             return <Badge variant="secondary">{status}</Badge>;
         }
     };
+    
+    const handleExport = () => {
+        if (!currentData || currentData.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'No Data to Export',
+                description: 'There is no attendance data for the selected class and date.',
+            });
+            return;
+        }
+
+        const dataToExport = currentData.map(item => ({
+            'Student Name': item.name,
+            'Roll No': item.id,
+            'Status': item.status,
+            'Marked By': item.markedBy,
+        }));
+        
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `attendance-report-${selectedClass}-${format(selectedDate!, 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+         toast({
+            title: 'Export Successful',
+            description: 'The attendance report has been downloaded.',
+        });
+    };
 
     return (
         <div className="grid gap-6">
@@ -83,7 +119,7 @@ export default function AttendanceMonitoringPage() {
                             Review attendance records submitted by professors.
                         </CardDescription>
                     </div>
-                    <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Export Report</Button>
+                    <Button variant="outline" onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export Report</Button>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col md:flex-row gap-4 mb-6">
