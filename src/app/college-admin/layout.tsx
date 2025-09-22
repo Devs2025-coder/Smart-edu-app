@@ -18,7 +18,8 @@ import {
   Mountain,
   Settings,
   Users,
-  PlusCircle
+  PlusCircle,
+  CalendarDays,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -27,6 +28,7 @@ import { Header } from '@/components/layout/header';
 const menuItems = [
   { href: '/college-admin/dashboard', label: 'Dashboard', icon: Home },
   { href: '/college-admin/manage-users', label: 'Manage Users', icon: Users },
+  { href: '/college-admin/classes', label: 'Classes', icon: CalendarDays },
   { href: '/college/add-user', label: 'Add User', icon: PlusCircle },
   { href: '/college-admin/settings', label: 'Settings', icon: Settings },
 ];
