@@ -14,8 +14,10 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { EventDialog } from '@/components/school-admin/event-dialog';
+import { useToast } from '@/hooks/use-toast';
 
-const events = {
+const initialEvents = {
   '2024-10-25': [{ title: 'Parent-Teacher Meeting', type: 'meeting' }],
   '2024-10-30': [{ title: 'Annual Sports Day', type: 'event' }],
   '2024-11-14': [{ title: 'Diwali Holiday', type: 'holiday' }],
@@ -37,8 +39,28 @@ const getEventTypeBadge = (type) => {
 
 export default function EventsPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [events, setEvents] = useState(initialEvents);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  const DayContent = ({ date, ...props }) => {
+  const handleSaveEvent = (eventData) => {
+    const dateString = format(eventData.date, 'yyyy-MM-dd');
+    setEvents(currentEvents => {
+      const newEvents = { ...currentEvents };
+      if (newEvents[dateString]) {
+        newEvents[dateString].push({ title: eventData.title, type: eventData.type });
+      } else {
+        newEvents[dateString] = [{ title: eventData.title, type: eventData.type }];
+      }
+      return newEvents;
+    });
+    toast({
+      title: 'Event Created',
+      description: `The event "${eventData.title}" has been added to the calendar.`,
+    });
+  };
+
+  const DayContent = ({ date }) => {
     const dateString = format(date, 'yyyy-MM-dd');
     const dayEvents = events[dateString];
 
@@ -74,7 +96,7 @@ export default function EventsPage() {
               Manage school holidays, exams, and parent-teacher meetings.
             </CardDescription>
           </div>
-          <Button>
+          <Button onClick={() => setIsDialogOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Event
           </Button>
         </CardHeader>
@@ -128,11 +150,18 @@ export default function EventsPage() {
                     <div className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-primary" /> Meeting</div>
                     <div className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-accent" /> Event</div>
                     <div className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-green-500" /> Holiday</div>
+                    <div className="flex items-center gap-2 text-sm"><div className="h-3 w-3 rounded-full bg-destructive" /> Exam</div>
                 </CardContent>
             </Card>
           </div>
         </CardContent>
       </Card>
+      <EventDialog 
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSave={handleSaveEvent}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 }
