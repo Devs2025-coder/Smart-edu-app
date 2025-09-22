@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as z from "zod"
@@ -430,3 +431,4 @@ export default function CollegeAdminSettingsPage() {
     </div>
   );
 }
+
