@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Send, Paperclip } from 'lucide-react';
+import { Search, Send, Paperclip, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,9 @@ export default function TeacherParentCommunicationPage() {
     const [newMessage, setNewMessage] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+    const [announcementSubject, setAnnouncementSubject] = useState('');
+    const [announcementMessage, setAnnouncementMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
     
     const handleSendMessage = () => {
         if (newMessage.trim() === '') return;
@@ -66,6 +69,27 @@ export default function TeacherParentCommunicationPage() {
     const handleAttachClick = () => {
         fileInputRef.current?.click();
     };
+
+    const handleSendAnnouncement = async () => {
+      if (!announcementSubject.trim() || !announcementMessage.trim()) {
+          toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Please fill out both the subject and message fields.',
+          });
+          return;
+      }
+      setIsSending(true);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log("Sending announcement:", { subject: announcementSubject, message: announcementMessage });
+      setIsSending(false);
+      setAnnouncementSubject('');
+      setAnnouncementMessage('');
+      toast({
+          title: 'Announcement Sent!',
+          description: 'Your message has been broadcast to all parents.',
+      });
+  };
 
   return (
     <div className="grid gap-6">
@@ -180,15 +204,30 @@ export default function TeacherParentCommunicationPage() {
                     <CardContent className="space-y-4">
                          <div>
                             <label htmlFor="announcement-subject" className="text-sm font-medium">Subject</label>
-                            <Input id="announcement-subject" placeholder="e.g., Upcoming Field Trip" className="mt-1" />
+                            <Input 
+                              id="announcement-subject" 
+                              placeholder="e.g., Upcoming Field Trip" 
+                              className="mt-1" 
+                              value={announcementSubject}
+                              onChange={(e) => setAnnouncementSubject(e.target.value)}
+                            />
                         </div>
                         <div>
                              <label htmlFor="announcement-message" className="text-sm font-medium">Message</label>
-                            <Textarea id="announcement-message" placeholder="Compose your announcement..." className="min-h-[200px] mt-1"/>
+                            <Textarea 
+                              id="announcement-message" 
+                              placeholder="Compose your announcement..." 
+                              className="min-h-[200px] mt-1"
+                              value={announcementMessage}
+                              onChange={(e) => setAnnouncementMessage(e.target.value)}
+                            />
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end">
-                        <Button>Send to All Parents</Button>
+                        <Button onClick={handleSendAnnouncement} disabled={isSending}>
+                          {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          {isSending ? 'Sending...' : 'Send to All Parents'}
+                        </Button>
                     </CardFooter>
                 </Card>
             </TabsContent>
