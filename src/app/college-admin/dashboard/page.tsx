@@ -88,7 +88,7 @@ export default function CollegeAdminDashboardPage() {
             </Link>
           </Button>
            <Button asChild variant="secondary">
-            <Link href="/college/manage-users">
+            <Link href="/college-admin/manage-users">
                 <Users className="mr-2 h-4 w-4" />
                 Manage Users
             </Link>
