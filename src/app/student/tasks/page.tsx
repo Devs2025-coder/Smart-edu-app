@@ -36,7 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Book,
   Bot,
@@ -45,8 +44,10 @@ import {
   Loader2,
   Search,
   BookOpenCheck,
+  Rocket,
+  Wrench,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { getPersonalizedTaskSuggestions, PersonalizedTaskSuggestionsOutput } from '@/ai/flows/personalized-task-suggestions';
@@ -361,16 +362,53 @@ export default function StudentTasksPage() {
                   )}
                   
                   {aiSuggestions && (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold text-lg flex items-center"><Search className="mr-2 h-5 w-5 text-primary"/>Reasoning</h3>
-                        <p className="text-muted-foreground text-sm mt-1">{aiSuggestions.reasoning}</p>
-                      </div>
-                      <Separator />
-                       <div>
-                        <h3 className="font-semibold text-lg flex items-center"><BookOpenCheck className="mr-2 h-5 w-5 text-primary"/>Suggestions</h3>
-                        <p className="text-muted-foreground text-sm mt-1 whitespace-pre-wrap">{aiSuggestions.taskSuggestions}</p>
-                      </div>
+                    <div className="space-y-8">
+                       {aiSuggestions.interestBasedSuggestions && (
+                        <div>
+                          <h3 className="font-semibold text-lg flex items-center mb-2">
+                            <Rocket className="mr-2 h-5 w-5 text-primary" />
+                            Interest-Based Suggestions
+                          </h3>
+                          <div className="space-y-4 text-sm p-4 rounded-md border bg-muted/20">
+                            <div>
+                              <h4 className="font-medium flex items-center"><Search className="mr-2 h-4 w-4 text-primary/80" />Reasoning</h4>
+                              <p className="text-muted-foreground mt-1">
+                                {aiSuggestions.interestBasedSuggestions.reasoning}
+                              </p>
+                            </div>
+                            <Separator/>
+                            <div>
+                              <h4 className="font-medium flex items-center"><BookOpenCheck className="mr-2 h-4 w-4 text-primary/80" />Suggestions</h4>
+                              <p className="text-muted-foreground mt-1 whitespace-pre-wrap">
+                                {aiSuggestions.interestBasedSuggestions.suggestions}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {aiSuggestions.weaknessBasedSuggestions && (
+                        <div>
+                          <h3 className="font-semibold text-lg flex items-center mb-2">
+                            <Wrench className="mr-2 h-5 w-5 text-primary" />
+                            Weakness-Based Suggestions
+                          </h3>
+                          <div className="space-y-4 text-sm p-4 rounded-md border bg-muted/20">
+                            <div>
+                              <h4 className="font-medium flex items-center"><Search className="mr-2 h-4 w-4 text-primary/80" />Reasoning</h4>
+                              <p className="text-muted-foreground mt-1">
+                                {aiSuggestions.weaknessBasedSuggestions.reasoning}
+                              </p>
+                            </div>
+                            <Separator/>
+                            <div>
+                              <h4 className="font-medium flex items-center"><BookOpenCheck className="mr-2 h-4 w-4 text-primary/80" />Suggestions</h4>
+                              <p className="text-muted-foreground mt-1 whitespace-pre-wrap">
+                                {aiSuggestions.weaknessBasedSuggestions.suggestions}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
