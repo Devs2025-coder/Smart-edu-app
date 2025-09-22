@@ -45,6 +45,8 @@ const taskFormSchema = z.object({
   title: z.string().min(1, "Task title is required."),
   instructions: z.string().min(1, "Instructions are required."),
   subject: z.string().min(1, "Subject is required."),
+  grade: z.string().min(1, "Grade is required."),
+  section: z.string().min(1, "Section is required."),
   assignTo: z.enum(['class', 'group', 'individual']).default('class'),
   dueDate: z.date({
     required_error: "A due date is required.",
@@ -149,6 +151,50 @@ export default function TeacherTasksPage() {
                             />
                             <FormField
                             control={form.control}
+                            name="grade"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Grade</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a grade" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {[...Array(12)].map((_, i) => (
+                                            <SelectItem key={i+1} value={`${i + 1}`}>Grade {i + 1}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                             <FormField
+                              control={form.control}
+                              name="section"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Section</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select a section" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="a">Section A</SelectItem>
+                                      <SelectItem value="b">Section B</SelectItem>
+                                      <SelectItem value="c">Section C</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                            control={form.control}
                             name="assignTo"
                             render={({ field }) => (
                                 <FormItem>
@@ -173,7 +219,7 @@ export default function TeacherTasksPage() {
                             control={form.control}
                             name="dueDate"
                             render={({ field }) => (
-                                <FormItem className="flex flex-col">
+                                <FormItem className="flex flex-col md:col-span-2">
                                 <FormLabel>Due Date</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
