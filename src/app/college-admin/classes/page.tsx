@@ -37,8 +37,9 @@ import { PlusCircle, UserPlus, Clock, MoreHorizontal, Edit, Trash2, Plus } from 
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ClassScheduleDialog } from '@/components/college-admin/class-schedule-dialog';
+import { useToast } from '@/hooks/use-toast';
 
-const existingClasses = [
+const initialExistingClasses = [
   { id: 'C1', branch: 'Computer Science', semester: '3', section: 'A', professor: 'Dr. Evelyn Reed', students: 60 },
   { id: 'C2', branch: 'Computer Science', semester: '3', section: 'B', professor: 'Dr. Evelyn Reed', students: 60 },
   { id: 'C3', branch: 'Physics', semester: '1', section: 'A', professor: 'Dr. Samuel Grant', students: 55 },
@@ -56,8 +57,41 @@ const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 export default function ClassesPage() {
   const [scheduleData, setScheduleData] = useState(initialScheduleData);
+  const [existingClasses, setExistingClasses] = useState(initialExistingClasses);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState(null);
+  const { toast } = useToast();
+
+  const [newClassBranch, setNewClassBranch] = useState('');
+  const [newClassSemester, setNewClassSemester] = useState('');
+  const [newClassSection, setNewClassSection] = useState('');
+
+  const handleCreateClass = () => {
+    if (!newClassBranch || !newClassSemester || !newClassSection) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please select a branch, semester, and enter a section.',
+      });
+      return;
+    }
+    const newClass = {
+      id: `C${existingClasses.length + 1}`,
+      branch: newClassBranch,
+      semester: newClassSemester,
+      section: newClassSection,
+      professor: 'Unassigned',
+      students: 0,
+    };
+    setExistingClasses([...existingClasses, newClass]);
+    setNewClassBranch('');
+    setNewClassSemester('');
+    setNewClassSection('');
+    toast({
+      title: 'Class Created',
+      description: `${newClass.branch} - Semester ${newClass.semester}, Section ${newClass.section} has been added.`,
+    });
+  };
 
   const handleSavePeriod = (periodData) => {
     setScheduleData(currentSchedule => {
@@ -174,16 +208,28 @@ export default function ClassesPage() {
                         <CardDescription>Define a new class by branch, semester, and section.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <Select>
+                        <Select onValueChange={setNewClassBranch} value={newClassBranch}>
                             <SelectTrigger><SelectValue placeholder="Select Branch" /></SelectTrigger>
-                            <SelectContent><SelectItem value="cse">Computer Science</SelectItem></SelectContent>
+                            <SelectContent>
+                              <SelectItem value="Computer Science">Computer Science</SelectItem>
+                              <SelectItem value="Physics">Physics</SelectItem>
+                              <SelectItem value="Mathematics">Mathematics</SelectItem>
+                            </SelectContent>
                         </Select>
-                        <Select>
+                        <Select onValueChange={setNewClassSemester} value={newClassSemester}>
                             <SelectTrigger><SelectValue placeholder="Select Semester" /></SelectTrigger>
-                            <SelectContent><SelectItem value="3">Semester 3</SelectItem></SelectContent>
+                            <SelectContent>
+                              {[...Array(8)].map((_, i) => (
+                                <SelectItem key={i + 1} value={String(i + 1)}>Semester {i + 1}</SelectItem>
+                              ))}
+                            </SelectContent>
                         </Select>
-                        <Input placeholder="Enter Section (e.g., A, B)"/>
-                        <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4"/>Create Class</Button>
+                        <Input 
+                          placeholder="Enter Section (e.g., A, B)" 
+                          value={newClassSection}
+                          onChange={(e) => setNewClassSection(e.target.value)}
+                        />
+                        <Button className="w-full md:w-auto" onClick={handleCreateClass}><PlusCircle className="mr-2 h-4 w-4"/>Create Class</Button>
                     </CardContent>
                 </Card>
                 <Card>
@@ -285,7 +331,6 @@ export default function ClassesPage() {
         onOpenChange={setIsDialogOpen}
         onSave={handleSavePeriod}
         periodData={editingPeriod}
-        timeSlots={scheduleData.map(s => s.time)}
       />
     </div>
   );
