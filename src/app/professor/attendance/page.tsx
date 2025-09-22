@@ -53,6 +53,7 @@ export default function AttendancePage() {
   const [qrCodeExpiry, setQrCodeExpiry] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(QR_CODE_VALIDITY_SECONDS);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (qrCodeExpiry && countdown > 0) {
@@ -156,6 +157,22 @@ export default function AttendancePage() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log('Selected file:', file.name);
+      // Simulate file processing
+      toast({
+        title: 'File Uploaded',
+        description: `${file.name} has been selected for processing.`,
+      });
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
   };
 
   const renderAttendanceMode = () => {
@@ -273,7 +290,14 @@ export default function AttendancePage() {
              <div className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-12 w-full max-w-md">
                  <FileUp className="w-12 h-12 text-muted-foreground mx-auto" />
                  <p className="mt-4">Drag & drop your file here or</p>
-                <Button variant="link">browse to upload</Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                />
+                <Button variant="link" onClick={handleBrowseClick}>browse to upload</Button>
             </div>
           </div>
         );
