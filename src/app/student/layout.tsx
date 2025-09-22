@@ -12,7 +12,6 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Book,
   CalendarCheck,
@@ -27,6 +26,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Header } from '@/components/layout/header';
 
 const menuItems = [
   { href: '/student/dashboard', label: 'Dashboard', icon: Home },
@@ -52,16 +52,6 @@ export default function StudentLayout({
            <div className="flex items-center gap-2 border-b p-2">
               <Mountain className="h-6 w-6" />
               <span className="text-lg font-semibold">EduTrack</span>
-          </div>
-          <div className="flex items-center gap-3 p-2">
-            <Avatar>
-              <AvatarImage src="https://picsum.photos/seed/student/40/40" />
-              <AvatarFallback>SM</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="font-semibold">Sarah Miller</span>
-              <span className="text-xs text-muted-foreground">Student</span>
-            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -107,10 +97,7 @@ export default function StudentLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-14 items-center justify-between border-b bg-background px-4">
-          <SidebarTrigger />
-          <h1 className="text-xl font-semibold">Student Portal</h1>
-        </header>
+        <Header />
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
+import { Header } from '@/components/layout/header';
 
 export const metadata: Metadata = {
   title: 'EduTrack - Smart Curriculum & Attendance Management',
@@ -32,9 +32,7 @@ export default function RootLayout({
         )}
       >
         <div className="relative flex min-h-dvh flex-col bg-background">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          {children}
         </div>
         <Toaster />
       </body>

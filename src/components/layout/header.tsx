@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, Mountain, MoveRight, LogOut } from 'lucide-react';
+import { Menu, Mountain, MoveRight, LogOut, Settings, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { NAV_LINKS, USER_ROLES } from '@/lib/constants';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { SidebarTrigger } from '../ui/sidebar';
 
 const PORTAL_PREFIXES = [
   '/professor',
@@ -42,9 +46,103 @@ const LoginMenu = () => (
   </DropdownMenu>
 );
 
+const getPortalInfo = (pathname: string) => {
+  if (pathname.startsWith('/professor')) {
+    return {
+      role: 'professor',
+      name: 'Dr. John Doe',
+      avatarUrl: 'https://picsum.photos/seed/prof/40/40',
+      avatarFallback: 'JD',
+      settingsUrl: '/professor/settings',
+      logoutUrl: '/login?role=professor',
+    };
+  }
+  if (pathname.startsWith('/student')) {
+    return {
+      role: 'student',
+      name: 'Sarah Miller',
+      avatarUrl: 'https://picsum.photos/seed/student/40/40',
+      avatarFallback: 'SM',
+      settingsUrl: '/student/settings',
+      logoutUrl: '/login?role=student',
+    };
+  }
+  if (pathname.startsWith('/college-admin')) {
+    return {
+      role: 'college-admin',
+      name: 'Admin Name',
+      avatarUrl: 'https://picsum.photos/seed/admin/40/40',
+      avatarFallback: 'AD',
+      settingsUrl: '/college-admin/settings',
+      logoutUrl: '/login?role=college-admin',
+    };
+  }
+  return null;
+};
+
 export function Header() {
   const pathname = usePathname();
   const isInPortal = PORTAL_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const portalInfo = getPortalInfo(pathname);
+
+  if (isInPortal) {
+    return (
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-background px-4">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger />
+          <h1 className="text-xl font-semibold">
+            {portalInfo?.role
+              .split('-')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')}{' '}
+            Portal
+          </h1>
+        </div>
+        {portalInfo && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={portalInfo.avatarUrl} alt={portalInfo.name} />
+                  <AvatarFallback>{portalInfo.avatarFallback}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{portalInfo.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {portalInfo.role.replace('-', ' ')}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={portalInfo.settingsUrl}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                 <Link href="#">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={portalInfo.logoutUrl}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -97,13 +195,6 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          {isInPortal ? (
-            <Button variant="outline" asChild>
-              <Link href="/">
-                <LogOut className="mr-2 h-4 w-4" /> Logout
-              </Link>
-            </Button>
-          ) : (
             <>
               <div className="hidden md:flex items-center space-x-2">
                 <LoginMenu />
@@ -117,7 +208,6 @@ export function Header() {
                 <LoginMenu />
               </div>
             </>
-          )}
         </div>
       </div>
     </header>
