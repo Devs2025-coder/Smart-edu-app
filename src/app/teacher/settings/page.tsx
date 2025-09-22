@@ -141,7 +141,7 @@ export default function TeacherSettingsPage() {
                     <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                         <TabsTrigger value="profile"><User className="mr-2"/>Profile</TabsTrigger>
                         <TabsTrigger value="password"><KeyRound className="mr-2"/>Password</TabsTrigger>
-                        <TabsTrigger value="notifications"><Bell className="mr-2"/>Notifications</TabsTrigger>
+                        <TabsTrigger value="notifications"><Bell className="mr-2"/>Reminders</TabsTrigger>
                         <TabsTrigger value="privacy"><Shield className="mr-2"/>Privacy</TabsTrigger>
                     </TabsList>
                     
@@ -307,8 +307,8 @@ export default function TeacherSettingsPage() {
                            <form onSubmit={notificationsForm.handleSubmit(onNotificationsSubmit)}>
                                 <Card className="mt-6 max-w-2xl mx-auto">
                                     <CardHeader>
-                                        <CardTitle>Notification Preferences</CardTitle>
-                                        <CardDescription>Manage how you receive notifications from the platform.</CardDescription>
+                                        <CardTitle>Reminder Preferences</CardTitle>
+                                        <CardDescription>Manage how you receive reminders from the platform.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                         <FormField
@@ -468,3 +468,5 @@ export default function TeacherSettingsPage() {
     </div>
   );
 }
+
+    
