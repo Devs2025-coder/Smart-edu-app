@@ -46,7 +46,7 @@ import {
   Search,
   BookOpenCheck,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { getPersonalizedTaskSuggestions, PersonalizedTaskSuggestionsOutput } from '@/ai/flows/personalized-task-suggestions';
@@ -129,6 +129,8 @@ export default function StudentTasksPage() {
     semester: 'all',
     section: 'all',
   });
+  
+  const [filteredTasks, setFilteredTasks] = useState(assignedTasks);
 
   const [isLoading, setIsLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<PersonalizedTaskSuggestionsOutput | null>(null);
@@ -141,13 +143,16 @@ export default function StudentTasksPage() {
     setFilters(prev => ({ ...prev, [filterName]: value }));
   };
 
-  const filteredTasks = assignedTasks.filter(task => {
-    return (
-      (filters.department === 'all' || task.branch === filters.department) &&
-      (filters.semester === 'all' || task.semester === filters.semester) &&
-      (filters.section === 'all' || task.section === filters.section)
-    );
-  });
+  const handleApplyFilters = () => {
+    const newFilteredTasks = assignedTasks.filter(task => {
+      return (
+        (filters.department === 'all' || task.branch === filters.department) &&
+        (filters.semester === 'all' || task.semester === filters.semester) &&
+        (filters.section === 'all' || task.section === filters.section)
+      );
+    });
+    setFilteredTasks(newFilteredTasks);
+  };
   
   const onAiSubmit = async (data: AiSuggestionFormData) => {
     setIsLoading(true);
@@ -228,7 +233,7 @@ export default function StudentTasksPage() {
                     <SelectItem value="b">Section B</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button>
+                <Button onClick={handleApplyFilters}>
                   <Filter className="mr-2 h-4 w-4" /> Apply Filters
                 </Button>
               </div>
