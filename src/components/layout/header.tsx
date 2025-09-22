@@ -88,6 +88,16 @@ const getPortalInfo = (pathname: string) => {
       logoutUrl: '/login?role=teacher',
     };
   }
+  if (pathname.startsWith('/parent')) {
+    return {
+      role: 'parent',
+      name: 'Mr. Patel',
+      avatarUrl: 'https://picsum.photos/seed/parent/40/40',
+      avatarFallback: 'AP',
+      settingsUrl: '/parent/settings',
+      logoutUrl: '/login?role=parent',
+    };
+  }
   return null;
 };
 
