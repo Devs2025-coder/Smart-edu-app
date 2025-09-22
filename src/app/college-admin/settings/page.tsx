@@ -73,6 +73,11 @@ export default function CollegeAdminSettingsPage() {
     const { toast } = useToast();
     const [isSaving, setIsSaving] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [branches, setBranches] = useState([
+        'Computer Science & Engineering',
+        'Mechanical Engineering',
+    ]);
+    const [newBranch, setNewBranch] = useState('');
     
     const profileForm = useForm<ProfileFormData>({
         resolver: zodResolver(profileFormSchema),
@@ -105,6 +110,32 @@ export default function CollegeAdminSettingsPage() {
         if (formName === 'Password') {
             passwordForm.reset();
         }
+    };
+    
+    const handleDataAction = (action: string) => {
+        toast({
+            title: 'Action Triggered',
+            description: `The "${action}" functionality will be implemented in a future update.`,
+        });
+    };
+
+    const handleAddBranch = () => {
+        if (newBranch.trim() === '') {
+            toast({ variant: 'destructive', title: 'Error', description: 'Branch name cannot be empty.' });
+            return;
+        }
+        if (branches.find(b => b.toLowerCase() === newBranch.toLowerCase())) {
+            toast({ variant: 'destructive', title: 'Error', description: 'This branch already exists.' });
+            return;
+        }
+        setBranches([...branches, newBranch.trim()]);
+        setNewBranch('');
+        toast({ title: 'Success', description: `Branch "${newBranch.trim()}" has been added.` });
+    };
+
+    const handleDeleteBranch = (branchToDelete: string) => {
+        setBranches(branches.filter(b => b !== branchToDelete));
+        toast({ title: 'Success', description: `Branch "${branchToDelete}" has been removed.` });
     };
 
 
@@ -283,10 +314,10 @@ export default function CollegeAdminSettingsPage() {
                                         <CardTitle className="text-lg">Data Management</CardTitle>
                                     </CardHeader>
                                     <CardContent className="flex flex-wrap gap-4">
-                                        <Button variant="outline"><FileUp className="mr-2 h-4 w-4"/> Import Students</Button>
-                                        <Button variant="outline"><FileDown className="mr-2 h-4 w-4"/> Export Students</Button>
-                                        <Button variant="outline"><FileUp className="mr-2 h-4 w-4"/> Import Professors</Button>
-                                        <Button variant="outline"><FileDown className="mr-2 h-4 w-4"/> Export Professors</Button>
+                                        <Button variant="outline" onClick={() => handleDataAction('Import Students')}><FileUp className="mr-2 h-4 w-4"/> Import Students</Button>
+                                        <Button variant="outline" onClick={() => handleDataAction('Export Students')}><FileDown className="mr-2 h-4 w-4"/> Export Students</Button>
+                                        <Button variant="outline" onClick={() => handleDataAction('Import Professors')}><FileUp className="mr-2 h-4 w-4"/> Import Professors</Button>
+                                        <Button variant="outline" onClick={() => handleDataAction('Export Professors')}><FileDown className="mr-2 h-4 w-4"/> Export Professors</Button>
                                     </CardContent>
                                 </Card>
                                  <Card>
@@ -296,17 +327,19 @@ export default function CollegeAdminSettingsPage() {
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="flex items-center gap-4">
-                                            <Input placeholder="Add new branch (e.g., Electrical Engineering)"/>
-                                            <Button size="icon"><PlusCircle className="h-4 w-4"/></Button>
+                                            <Input 
+                                                placeholder="Add new branch (e.g., Electrical Engineering)"
+                                                value={newBranch}
+                                                onChange={(e) => setNewBranch(e.target.value)}
+                                            />
+                                            <Button size="icon" onClick={handleAddBranch}><PlusCircle className="h-4 w-4"/></Button>
                                         </div>
-                                         <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                            <span>Computer Science & Engineering</span>
-                                            <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                            <span>Mechanical Engineering</span>
-                                            <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                        </div>
+                                        {branches.map(branch => (
+                                             <div key={branch} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                                <span>{branch}</span>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteBranch(branch)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                            </div>
+                                        ))}
                                     </CardContent>
                                 </Card>
                              </CardContent>
@@ -388,5 +421,3 @@ export default function CollegeAdminSettingsPage() {
     </div>
   );
 }
-
-    
