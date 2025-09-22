@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -27,19 +28,19 @@ import { useSearchParams } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-const teachersData = [
+const initialTeachersData = [
   { id: 'T101', name: 'Ms. Priya Sharma', subject: 'Math, Science', class: '6A', contact: 'p.sharma@school.edu', status: 'Active', avatar: 'PS' },
   { id: 'T102', name: 'Mr. Rohan Verma', subject: 'English, History', class: '7B', contact: 'r.verma@school.edu', status: 'Active', avatar: 'RV' },
   { id: 'T103', name: 'Ms. Anjali Singh', subject: 'Art, Music', class: 'All', contact: 'a.singh@school.edu', status: 'Inactive', avatar: 'AS' },
 ];
 
-const studentsData = [
+const initialStudentsData = [
   { id: 'S201', name: 'Aarav Sharma', class: '6A', parentLinked: true, attendance: '95%', performance: 'Good' },
   { id: 'S202', name: 'Saanvi Gupta', class: '6A', parentLinked: true, attendance: '98%', performance: 'Excellent' },
   { id: 'S203', name: 'Vihaan Singh', class: '7B', parentLinked: false, attendance: '82%', performance: 'Average' },
 ];
 
-const parentsData = [
+const initialParentsData = [
     { id: 'P301', name: 'Mr. Patel', children: 'Advik Patel (6A)', contact: 'p.patel@email.com', status: 'Active' },
     { id: 'P302', name: 'Mrs. Gupta', children: 'Saanvi Gupta (6A)', contact: 'p.gupta@email.com', status: 'Active' },
 ];
@@ -49,10 +50,33 @@ export default function ManageUsersPage() {
   const defaultTab = searchParams.get('tab') || 'teachers';
   const { toast } = useToast();
 
+  const [teachersData, setTeachersData] = useState(initialTeachersData);
+  const [studentsData, setStudentsData] = useState(initialStudentsData);
+  const [parentsData, setParentsData] = useState(initialParentsData);
+
   const handleAction = (action: string, user: { name: string }) => {
     toast({
       title: `${action} User`,
       description: `The action to ${action.toLowerCase()} user "${user.name}" has been triggered.`,
+    });
+  };
+
+  const handleDelete = (userType: 'teacher' | 'student' | 'parent', userId: string, userName: string) => {
+    switch (userType) {
+        case 'teacher':
+            setTeachersData(current => current.filter(user => user.id !== userId));
+            break;
+        case 'student':
+            setStudentsData(current => current.filter(user => user.id !== userId));
+            break;
+        case 'parent':
+            setParentsData(current => current.filter(user => user.id !== userId));
+            break;
+    }
+    toast({
+      variant: 'destructive',
+      title: 'User Removed',
+      description: `User "${userName}" has been removed from the system.`,
     });
   };
   
@@ -125,7 +149,7 @@ export default function ManageUsersPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleAction('Edit', prof)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleAction('View', prof)}><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAction('Remove', prof)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDelete('teacher', prof.id, prof.name)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -196,7 +220,7 @@ export default function ManageUsersPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleAction('Edit', student)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleAction('View', student)}><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAction('Remove', student)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDelete('student', student.id, student.name)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -241,7 +265,7 @@ export default function ManageUsersPage() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleAction('Edit', parent)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleAction('View', parent)}><Eye className="mr-2 h-4 w-4" /> View Details</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleAction('Remove', parent)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDelete('parent', parent.id, parent.name)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
