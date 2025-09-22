@@ -137,6 +137,11 @@ export default function StudentTasksPage() {
 
   const form = useForm<AiSuggestionFormData>({
     resolver: zodResolver(aiSuggestionSchema),
+    defaultValues: {
+        interests: "",
+        careerGoals: "",
+        weaknesses: "",
+    }
   });
 
   const handleFilterChange = (filterName: string, value: string) => {
