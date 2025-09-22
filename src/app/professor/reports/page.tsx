@@ -39,7 +39,9 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Download, CalendarDays, Users, TrendingDown, TrendingUp, CheckCircle2, ListTodo } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Papa from 'papaparse';
 
 const attendanceData = [
   { student: { id: 'S001', name: 'Alice Johnson' }, total: 40, attended: 38 },
@@ -71,6 +73,8 @@ const taskChartConfig = {
 
 
 export default function ReportsPage() {
+    const [activeTab, setActiveTab] = useState('attendance');
+
     const processedAttendance = useMemo(() => {
         return attendanceData.map(d => ({
             ...d,
@@ -108,6 +112,47 @@ export default function ReportsPage() {
         if (percentage >= 50) return <Badge variant="outline" className="text-yellow-600 border-yellow-500">Warning</Badge>;
         return <Badge variant="destructive">At Risk</Badge>;
     };
+
+    const handleExport = (reportType: 'attendance' | 'tasks') => {
+        let dataToExport;
+        let filename;
+
+        if (reportType === 'attendance') {
+            dataToExport = processedAttendance.map(item => ({
+                'Student Name': item.student.name,
+                'Student ID': item.student.id,
+                'Attended': item.attended,
+                'Missed': item.missed,
+                'Total Classes': item.total,
+                'Attendance %': item.percentage.toFixed(0),
+            }));
+            filename = 'attendance-report.csv';
+        } else {
+            dataToExport = processedTasks.map(item => ({
+                'Student Name': item.student.name,
+                'Student ID': item.student.id,
+                'Assigned': item.assigned,
+                'Completed': item.completed,
+                'Pending': item.pending,
+                'Completion %': item.percentage.toFixed(0),
+            }));
+            filename = 'task-performance-report.csv';
+        }
+        
+        const csv = Papa.unparse(dataToExport);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    };
+
 
     return (
         <div className="grid gap-6">
@@ -161,11 +206,24 @@ export default function ReportsPage() {
                             </SelectContent>
                         </Select>
                         <div className="flex-1" />
-                        <Button variant="outline" className="w-full md:w-auto">
-                            <Download className="mr-2 h-4 w-4" /> Export
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full md:w-auto">
+                                    <Download className="mr-2 h-4 w-4" /> Export
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleExport('attendance')}>
+                                    Export Attendance as CSV
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleExport('tasks')}>
+                                    Export Tasks as CSV
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                     </div>
-                     <Tabs defaultValue="attendance">
+                     <Tabs defaultValue="attendance" onValueChange={setActiveTab}>
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="attendance">Attendance Report</TabsTrigger>
                             <TabsTrigger value="tasks">Task Performance</TabsTrigger>
