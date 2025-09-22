@@ -33,7 +33,6 @@ const menuItems = [
   { href: '/professor/attendance', label: 'Attendance', icon: CalendarCheck },
   { href: '/professor/tasks', label: 'Tasks', icon: ClipboardList },
   { href: '/professor/reports', label: 'Reports', icon: LineChart },
-  { href: '/professor/notifications', label: 'Notifications', icon: Bell },
   { href: '/professor/settings', label: 'Settings', icon: Settings },
 ];
 
