@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, Mountain, MoveRight, LogOut, Settings, User } from 'lucide-react';
+import { Menu, Mountain, MoveRight, LogOut, Settings } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { NAV_LINKS, USER_ROLES } from '@/lib/constants';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { SidebarTrigger } from '../ui/sidebar';
@@ -201,6 +201,9 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              </SheetHeader>
               <Link href="/" className="flex items-center space-x-2 mb-6">
                 <Mountain className="h-6 w-6" />
                 <span className="font-bold">EduTrack</span>
