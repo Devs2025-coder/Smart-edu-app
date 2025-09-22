@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -77,6 +78,16 @@ const getPortalInfo = (pathname: string) => {
       logoutUrl: '/login?role=college-admin',
     };
   }
+   if (pathname.startsWith('/teacher')) {
+    return {
+      role: 'teacher',
+      name: 'Ms. Priya Sharma',
+      avatarUrl: 'https://picsum.photos/seed/teacher/40/40',
+      avatarFallback: 'PS',
+      settingsUrl: '/teacher/settings',
+      logoutUrl: '/login?role=teacher',
+    };
+  }
   return null;
 };
 
@@ -86,16 +97,17 @@ export function Header() {
   const portalInfo = getPortalInfo(pathname);
 
   if (isInPortal) {
+    let portalTitle = 'Portal';
+    if(portalInfo?.role) {
+       portalTitle = portalInfo?.role.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Portal';
+    }
+
     return (
       <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-background px-4">
         <div className="flex items-center gap-2">
           <SidebarTrigger />
           <h1 className="text-xl font-semibold">
-            {portalInfo?.role
-              .split('-')
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(' ')}{' '}
-            Portal
+            {portalTitle}
           </h1>
         </div>
         {portalInfo && (
