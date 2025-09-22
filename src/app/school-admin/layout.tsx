@@ -22,7 +22,6 @@ import {
   BarChart,
   Megaphone,
   LineChart,
-  BookUser,
   School,
   Calendar,
 } from 'lucide-react';
@@ -32,9 +31,7 @@ import { Header } from '@/components/layout/header';
 
 const menuItems = [
   { href: '/school-admin/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/school-admin/users?tab=teachers', label: 'Teachers', icon: Users },
-  { href: '/school-admin/users?tab=students', label: 'Students', icon: Users },
-  { href: '/school-admin/users?tab=parents', label: 'Parents', icon: BookUser },
+  { href: '/school-admin/users', label: 'Manage Users', icon: Users },
   { href: '/school-admin/classes', label: 'Classes & Sections', icon: School },
   { href: '/school-admin/attendance', label: 'Attendance', icon: BarChart },
   { href: '/school-admin/timetable', label: 'Timetable', icon: CalendarDays },
@@ -66,7 +63,7 @@ export default function SchoolAdminLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href)}
                   tooltip={{ children: item.label }}
                 >
                   <Link href={item.href}>
