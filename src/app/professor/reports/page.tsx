@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -337,7 +338,7 @@ export default function ReportsPage() {
                                         <ListTodo className="h-4 w-4 text-muted-foreground" />
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="text-2xl font-bold">{taskData[0].assigned}</div>
+                                        <div className="text-2xl font-bold">{taskData.reduce((acc, curr) => acc + curr.assigned, 0) / taskData.length}</div>
                                     </CardContent>
                                 </Card>
                             </div>
