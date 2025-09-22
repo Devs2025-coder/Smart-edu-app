@@ -24,6 +24,7 @@ import { MoreHorizontal, Edit, Trash2, UserPlus, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const teachersData = [
   { id: 'T101', name: 'Ms. Priya Sharma', subject: 'Math, Science', class: '6A', contact: 'p.sharma@school.edu', status: 'Active', avatar: 'PS' },
@@ -128,6 +129,28 @@ export default function ManageUsersPage() {
             </TabsContent>
 
             <TabsContent value="students" className="mt-6">
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <Select>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Classes</SelectItem>
+                    <SelectItem value="6">Class 6</SelectItem>
+                    <SelectItem value="7">Class 7</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by Section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sections</SelectItem>
+                    <SelectItem value="a">Section A</SelectItem>
+                    <SelectItem value="b">Section B</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Card>
                 <CardHeader>
                   <CardTitle>Student Roster</CardTitle>
