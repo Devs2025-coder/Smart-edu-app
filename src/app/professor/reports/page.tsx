@@ -112,16 +112,18 @@ export default function ReportsPage() {
     return (
         <div className="grid gap-6">
             <Card>
-                <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <CardHeader>
                     <div>
                         <CardTitle>Reports & Analytics</CardTitle>
                         <CardDescription>
                             Analyze class performance for Computer Science 101.
                         </CardDescription>
                     </div>
-                     <div className="flex gap-2 mt-4 md:mt-0">
+                </CardHeader>
+                <CardContent>
+                     <div className="flex flex-col md:flex-row gap-4 mb-6">
                          <Select defaultValue="cs101">
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Class" />
                             </SelectTrigger>
                             <SelectContent>
@@ -129,8 +131,27 @@ export default function ReportsPage() {
                                 <SelectItem value="ph203">Physics 203</SelectItem>
                             </SelectContent>
                         </Select>
+                         <Select defaultValue="3">
+                            <SelectTrigger className="w-full md:w-[180px]">
+                                <SelectValue placeholder="Select Semester" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1">Semester 1</SelectItem>
+                                <SelectItem value="2">Semester 2</SelectItem>
+                                <SelectItem value="3">Semester 3</SelectItem>
+                            </SelectContent>
+                        </Select>
+                         <Select defaultValue="a">
+                            <SelectTrigger className="w-full md:w-[180px]">
+                                <SelectValue placeholder="Select Section" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="a">Section A</SelectItem>
+                                <SelectItem value="b">Section B</SelectItem>
+                            </SelectContent>
+                        </Select>
                          <Select defaultValue="month">
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Date Range" />
                             </SelectTrigger>
                             <SelectContent>
@@ -139,12 +160,11 @@ export default function ReportsPage() {
                                 <SelectItem value="semester">This Semester</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Button variant="outline">
+                        <div className="flex-1" />
+                        <Button variant="outline" className="w-full md:w-auto">
                             <Download className="mr-2 h-4 w-4" /> Export
                         </Button>
                     </div>
-                </CardHeader>
-                <CardContent>
                      <Tabs defaultValue="attendance">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="attendance">Attendance Report</TabsTrigger>
