@@ -22,6 +22,7 @@ import {
   CalendarDays,
   BarChart,
   LineChart,
+  Megaphone,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -33,7 +34,7 @@ const menuItems = [
   { href: '/college-admin/classes', label: 'Classes', icon: CalendarDays },
   { href: '/college-admin/attendance', label: 'Attendance', icon: BarChart },
   { href: '/college-admin/reports', label: 'Reports', icon: LineChart },
-  { href: '/college/add-user', label: 'Add User', icon: PlusCircle },
+  { href: '/college-admin/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/college-admin/settings', label: 'Settings', icon: Settings },
 ];
 
