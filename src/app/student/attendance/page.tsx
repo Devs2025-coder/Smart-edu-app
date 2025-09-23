@@ -49,8 +49,8 @@ export default function StudentAttendancePage() {
     const professorQrData = JSON.parse(MOCK_PROFESSOR_QR_DATA);
     
     const distance = haversine(
-        { latitude: studentCoords.latitude, longitude: studentCoords.longitude },
-        { latitude: professorQrData.geo.lat, longitude: professorQrData.geo.long }
+        { lat: studentCoords.latitude, lon: studentCoords.longitude },
+        { lat: professorQrData.geo.lat, lon: professorQrData.geo.long }
     );
     
     setTimeout(() => { // Simulate verification delay
