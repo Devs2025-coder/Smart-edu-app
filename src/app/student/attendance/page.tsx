@@ -43,7 +43,7 @@ export default function StudentAttendancePage() {
     };
   }, []);
 
-  const handleVerification = (studentCoords: { latitude: number; longitude: number; }) => {
+  const handleVerification = (studentCoords: GeolocationCoordinates) => {
     setIsVerifying(true);
     // In a real app, this data would come from the QR scanner library
     const professorQrData = JSON.parse(MOCK_PROFESSOR_QR_DATA);
@@ -63,7 +63,7 @@ export default function StudentAttendancePage() {
         toast({
           variant: "destructive",
           title: "Verification Failed",
-          description: "You are not in the classroom. Please move closer and try again.",
+          description: `You are not in the classroom. Distance: ${distance.toFixed(2)}m. Please move closer and try again.`,
         });
       }
       setIsVerifying(false);
