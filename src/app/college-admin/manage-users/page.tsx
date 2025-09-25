@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -50,6 +50,8 @@ export default function ManageUsersPage() {
   const { toast } = useToast();
   const [professorsData, setProfessorsData] = useState(initialProfessorsData);
   const [studentsData, setStudentsData] = useState(initialStudentsData);
+  const [branchFilter, setBranchFilter] = useState('all');
+  const [semesterFilter, setSemesterFilter] = useState('all');
 
   const handleEdit = (user: { name: string }) => {
     toast({
@@ -77,6 +79,14 @@ export default function ManageUsersPage() {
       });
     }
   };
+
+  const filteredStudents = useMemo(() => {
+    return studentsData.filter(student => {
+      const branchMatch = branchFilter === 'all' || student.branch.toLowerCase() === branchFilter;
+      const semesterMatch = semesterFilter === 'all' || student.semester.toString() === semesterFilter;
+      return branchMatch && semesterMatch;
+    });
+  }, [studentsData, branchFilter, semesterFilter]);
 
   return (
     <div className="grid gap-6">
@@ -171,7 +181,7 @@ export default function ManageUsersPage() {
 
             <TabsContent value="students" className="mt-6">
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <Select defaultValue="all">
+                    <Select value={branchFilter} onValueChange={setBranchFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by Branch" />
                         </SelectTrigger>
@@ -182,7 +192,7 @@ export default function ManageUsersPage() {
                         <SelectItem value="me">ME</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select defaultValue="all">
+                    <Select value={semesterFilter} onValueChange={setSemesterFilter}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by Semester" />
                         </SelectTrigger>
@@ -212,7 +222,7 @@ export default function ManageUsersPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {studentsData.map((student) => (
+                      {filteredStudents.length > 0 ? filteredStudents.map((student) => (
                         <TableRow key={student.id}>
                           <TableCell className="font-medium">{student.name}</TableCell>
                           <TableCell>{student.id}</TableCell>
@@ -259,7 +269,13 @@ export default function ManageUsersPage() {
                             </DropdownMenu>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )) : (
+                        <TableRow>
+                          <TableCell colSpan={7} className="h-24 text-center">
+                            No students match the current filters.
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
