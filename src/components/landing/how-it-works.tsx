@@ -11,23 +11,13 @@ const collegeSteps = [
 ];
 
 const StepCard = ({ step, index }: { step: { title: string; description: string, imageId: number, imageHint: string }, index: number }) => (
-    <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6 p-4">
+    <div className="flex flex-row items-start space-x-6 p-4">
         <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold">
             {index + 1}
         </div>
         <div className="flex-grow">
             <h3 className="text-lg font-headline font-semibold">{step.title}</h3>
             <p className="text-muted-foreground">{step.description}</p>
-        </div>
-        <div className="flex-shrink-0 w-full sm:w-32 md:w-40">
-           <Image
-                src={`https://picsum.photos/seed/${step.imageId}/400/300`}
-                alt={step.title}
-                width={400}
-                height={300}
-                className="rounded-lg object-cover"
-                data-ai-hint={step.imageHint}
-            />
         </div>
     </div>
 );
