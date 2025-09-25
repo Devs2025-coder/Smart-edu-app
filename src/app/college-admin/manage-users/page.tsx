@@ -29,14 +29,17 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-const professorsData = [
+const initialProfessorsData = [
   { id: 'P101', name: 'Dr. Evelyn Reed', department: 'Computer Science', classes: 'CS101, CS305', contact: 'e.reed@university.edu', avatar: 'ER' },
   { id: 'P102', name: 'Dr. Samuel Grant', department: 'Physics', classes: 'PH203, PH401', contact: 's.grant@university.edu', avatar: 'SG' },
   { id: 'P103', name: 'Dr. Clara Oswald', department: 'Mathematics', classes: 'MA305', contact: 'c.oswald@university.edu', avatar: 'CO' },
 ];
 
-const studentsData = [
+const initialStudentsData = [
   { id: 'S201', name: 'John Doe', branch: 'CSE', semester: 3, section: 'A', status: 'Active' },
   { id: 'S202', name: 'Jane Smith', branch: 'ECE', semester: 1, section: 'B', status: 'Active' },
   { id: 'S203', name: 'Peter Jones', branch: 'CSE', semester: 3, section: 'A', status: 'Inactive' },
@@ -44,6 +47,37 @@ const studentsData = [
 ];
 
 export default function ManageUsersPage() {
+  const { toast } = useToast();
+  const [professorsData, setProfessorsData] = useState(initialProfessorsData);
+  const [studentsData, setStudentsData] = useState(initialStudentsData);
+
+  const handleEdit = (user: { name: string }) => {
+    toast({
+      title: 'Editing User',
+      description: `You are now editing ${user.name}. (Edit functionality is a placeholder).`,
+    });
+  };
+
+  const handleRemove = (userType: 'professor' | 'student', userId: string) => {
+    if (userType === 'professor') {
+      const professor = professorsData.find(p => p.id === userId);
+      setProfessorsData(professorsData.filter((p) => p.id !== userId));
+      toast({
+        variant: 'destructive',
+        title: 'Professor Removed',
+        description: `${professor?.name} has been removed from the system.`,
+      });
+    } else {
+      const student = studentsData.find(s => s.id === userId);
+      setStudentsData(studentsData.filter((s) => s.id !== userId));
+      toast({
+        variant: 'destructive',
+        title: 'Student Removed',
+        description: `${student?.name} has been removed from the system.`,
+      });
+    }
+  };
+
   return (
     <div className="grid gap-6">
       <Card>
@@ -102,8 +136,28 @@ export default function ManageUsersPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEdit(prof)}>
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                      <Trash2 className="mr-2 h-4 w-4" /> Remove
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently remove {prof.name} from the system.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleRemove('professor', prof.id)}>Remove</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -179,8 +233,28 @@ export default function ManageUsersPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEdit(student)}>
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                      <Trash2 className="mr-2 h-4 w-4" /> Remove
+                                    </DropdownMenuItem>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently remove {student.name} from the system.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleRemove('student', student.id)}>Remove</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
