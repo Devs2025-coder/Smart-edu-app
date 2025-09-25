@@ -52,16 +52,7 @@ export function LoginForm({ role }: LoginFormProps) {
   const mappedRole = USER_ROLE_MAP[roleKey] || 'User';
 
 
-  if (role === 'teacher' || role === 'parent' || role === 'school-admin') {
-    title = 'School Login';
-    if (role === 'teacher') {
-      description = 'Access your teacher account to manage tasks and attendance.';
-    } else if (role === 'parent') {
-      description = "Access your parent account to view your child's progress.";
-    } else {
-        description = "Access your school admin account.";
-    }
-  } else {
+  
      title = "College Login";
      if (role === 'professor') {
         description = "Access your account to manage attendance, tasks, and schedules.";
@@ -72,7 +63,6 @@ export function LoginForm({ role }: LoginFormProps) {
      } else {
         description = "Access your account.";
      }
-  }
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -97,14 +87,7 @@ export function LoginForm({ role }: LoginFormProps) {
       router.push('/student/dashboard');
     } else if (role === 'college-admin') {
         router.push('/college-admin/dashboard');
-    } else if (role === 'teacher') {
-      router.push('/teacher/dashboard');
-    } else if (role === 'parent') {
-      router.push('/parent/dashboard');
-    } else if (role === 'school-admin') {
-        router.push('/school-admin/dashboard');
     }
-    // TODO: Add redirects for other roles
   };
 
   return (

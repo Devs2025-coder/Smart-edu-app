@@ -40,7 +40,7 @@ const formSchema = z
   .object({
     // Institution Details
     institutionName: z.string().min(1, 'Institution name is required.'),
-    institutionType: z.enum(['College', 'School']),
+    institutionType: z.enum(['College']),
     address: z.string().min(1, 'Address is required.'),
     city: z.string().optional(),
     state: z.string().optional(),
@@ -100,7 +100,7 @@ export function RegisterForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       institutionName: '',
-      institutionType: undefined,
+      institutionType: 'College',
       address: '',
       city: '',
       state: '',
@@ -208,7 +208,7 @@ export function RegisterForm() {
                     <FormItem className="md:col-span-2">
                       <FormLabel>Institution Name*</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Northwood High School" {...field} />
+                        <Input placeholder="e.g., Northwood University" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -228,7 +228,6 @@ export function RegisterForm() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="College">College</SelectItem>
-                          <SelectItem value="School">School</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

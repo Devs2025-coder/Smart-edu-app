@@ -24,9 +24,6 @@ const PORTAL_PREFIXES = [
   '/professor',
   '/student',
   '/college-admin',
-  '/school-admin',
-  '/teacher',
-  '/parent',
   '/super-admin',
 ];
 
@@ -76,36 +73,6 @@ const getPortalInfo = (pathname: string) => {
       avatarFallback: 'AD',
       settingsUrl: '/college-admin/settings',
       logoutUrl: '/login?role=college-admin',
-    };
-  }
-   if (pathname.startsWith('/teacher')) {
-    return {
-      role: 'teacher',
-      name: 'Ms. Priya Sharma',
-      avatarUrl: 'https://picsum.photos/seed/teacher/40/40',
-      avatarFallback: 'PS',
-      settingsUrl: '/teacher/settings',
-      logoutUrl: '/login?role=teacher',
-    };
-  }
-  if (pathname.startsWith('/parent')) {
-    return {
-      role: 'parent',
-      name: 'Mr. Patel',
-      avatarUrl: 'https://picsum.photos/seed/parent/40/40',
-      avatarFallback: 'AP',
-      settingsUrl: '/parent/settings',
-      logoutUrl: '/login?role=parent',
-    };
-  }
-  if (pathname.startsWith('/school-admin')) {
-    return {
-      role: 'school-admin',
-      name: 'School Admin',
-      avatarUrl: 'https://picsum.photos/seed/school-admin/40/40',
-      avatarFallback: 'SA',
-      settingsUrl: '/school-admin/settings',
-      logoutUrl: '/login?role=school-admin',
     };
   }
   return null;
@@ -202,7 +169,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left">
               <SheetHeader>
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                <SheetTitle>Navigation Menu</SheetTitle>
               </SheetHeader>
               <Link href="/" className="flex items-center space-x-2 mb-6">
                 <Mountain className="h-6 w-6" />

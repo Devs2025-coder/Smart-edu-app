@@ -60,8 +60,6 @@ const formSchema = z
       .regex(/[0-9]/, 'Password must contain at least one number.'),
     confirmPassword: z.string(),
     department: z.string().optional(), // For Professor/Student
-    childsName: z.string().optional(), // For Parent
-    childsId: z.string().optional(), // For Parent
     mobileNumber: z.string().optional(),
     profilePhoto: z.any().optional(),
   })
@@ -91,8 +89,6 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
       password: '',
       confirmPassword: '',
       department: '',
-      childsName: '',
-      childsId: '',
       mobileNumber: '',
     },
   });
@@ -111,12 +107,9 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
   const getTitle = () => {
     switch (role) {
       case 'professor':
-      case 'teacher':
-        return 'Professor/Teacher Registration';
+        return 'Professor Registration';
       case 'student':
         return 'Student Registration';
-      case 'parent':
-        return 'Parent Registration';
       default:
         return 'User Registration';
     }
@@ -168,7 +161,7 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
                       <FormControl>
                         <Input placeholder="Enter the code provided by your institution" {...field} />
                       </FormControl>
-                      <FormDescription>This code connects you to your school or college.</FormDescription>
+                      <FormDescription>This code connects you to your college.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -190,7 +183,7 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem className={role === 'parent' ? "md:col-span-2" : ""}>
+                    <FormItem>
                       <FormLabel>Email Address*</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="e.g., john.smith@example.com" {...field} />
@@ -200,51 +193,20 @@ export function UserRegistrationForm({ role }: UserRegistrationFormProps) {
                   )}
                 />
                 
-                {(role === 'professor' || role === 'teacher' || role === 'student') && (
+                {(role === 'professor' || role === 'student') && (
                   <FormField
                     control={form.control}
                     name="department"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{role === 'student' ? 'Class / Grade*' : 'Department*'}</FormLabel>
+                        <FormLabel>{role === 'student' ? 'Class / Major*' : 'Department*'}</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Computer Science or Grade 10" {...field} />
+                          <Input placeholder="e.g., Computer Science" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
-
-                {role === 'parent' && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="childsName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Child's Full Name*</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter your child's name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="childsId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Child's Student ID*</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter your child's student ID" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
                 )}
                 
                  <FormField
