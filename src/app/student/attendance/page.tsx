@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, Camera, AlertCircle, Loader2 } from 'lucide-react';
+import { QrCode, Camera, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import jsQR from 'jsqr';
@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 export default function StudentAttendancePage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>();
@@ -33,49 +32,35 @@ export default function StudentAttendancePage() {
       videoRef.current.srcObject = null;
     }
   }, []);
-  
+
   const tick = useCallback(() => {
-    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+    if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA) {
       const video = videoRef.current;
       const canvasElement = canvasRef.current;
       if (canvasElement) {
-        const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+        const canvas = canvasElement.getContext('2d');
         if (canvas) {
           canvasElement.height = video.videoHeight;
           canvasElement.width = video.videoWidth;
           canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-          
-          try {
-            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: "dontInvert",
+          const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert",
+          });
+
+          if (code) {
+            setIsScanning(false);
+            toast({
+              title: "Scanning is successful!",
             });
-
-            if (code) {
-              setIsScanning(false);
-              setIsVerifying(true);
-              
-              toast({
-                title: "Scanning is successful!",
-              });
-
-              // Simulate verification and reset
-              setTimeout(() => {
-                setIsVerifying(false);
-              }, 2000);
-              return; // Stop the loop
-            }
-          } catch(e) {
-            console.error("Error scanning QR code", e);
+            return; // Stop the loop
           }
         }
       }
     }
-    // Continue the loop
     animationFrameRef.current = requestAnimationFrame(tick);
   }, [toast]);
-
-
+  
   useEffect(() => {
     if (isScanning) {
       const startScan = async () => {
@@ -90,10 +75,12 @@ export default function StudentAttendancePage() {
 
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
-            videoRef.current.setAttribute("playsinline", "true"); // Required for iOS
-            videoRef.current.play().then(() => {
+            videoRef.current.oncanplay = () => {
+              if (videoRef.current) {
+                videoRef.current.play();
                 animationFrameRef.current = requestAnimationFrame(tick);
-            }).catch(e => console.error("Video play failed:", e));
+              }
+            };
           }
         } catch (err) {
           console.error("Error accessing camera:", err);
@@ -118,9 +105,6 @@ export default function StudentAttendancePage() {
   }, [isScanning, stopCamera, tick, toast]);
 
   const handleScanClick = () => {
-    if (!isScanning) {
-      setHasCameraPermission(null);
-    }
     setIsScanning(prev => !prev);
   }
 
@@ -136,27 +120,17 @@ export default function StudentAttendancePage() {
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
           <canvas ref={canvasRef} className="hidden" />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-            {/* The video element is always rendered to prevent race conditions with refs */}
             <video ref={videoRef} className={cn("w-full h-full object-cover", { "hidden": !isScanning })} muted playsInline />
             
-            {isScanning && hasCameraPermission && !isVerifying && (
+            {isScanning && hasCameraPermission ? (
                 <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center pointer-events-none" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
                     <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
-                    <p className="mt-4 font-semibold">Scanning for QR Code...</p>
+                    <p className="mt-4 font-semibold">Scan the QR code</p>
                 </div>
-            )}
-
-            {!isScanning && !isVerifying && (
+            ) : !isScanning && (
                <div className="absolute inset-0 text-muted-foreground flex flex-col items-center justify-center gap-2">
                     <Camera className="w-24 h-24" />
                     <p>Ready to scan</p>
-                </div>
-            )}
-            
-            {isVerifying && (
-                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin"/>
-                    <span>Verifying...</span>
                 </div>
             )}
           </div>
@@ -171,9 +145,9 @@ export default function StudentAttendancePage() {
             </Alert>
           )}
 
-          <Button onClick={handleScanClick} size="lg" disabled={isVerifying}>
+          <Button onClick={handleScanClick} size="lg">
             <QrCode className="mr-2 h-5 w-5" />
-            {isScanning ? (isVerifying ? 'Verifying...' : 'Stop Scanning') : 'Start QR Scan'}
+            {isScanning ? 'Stop Scanning' : 'Start QR Scan'}
           </Button>
         </CardContent>
       </Card>
