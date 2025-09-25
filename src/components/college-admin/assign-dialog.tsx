@@ -33,6 +33,7 @@ import { Input } from '../ui/input';
 
 const formSchema = z.object({
   value: z.string().min(1, 'Please select a value.'),
+  studentFile: z.any().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -53,15 +54,23 @@ export function AssignDialog({ isOpen, onOpenChange, onSave, type, classId, clas
   });
 
   useEffect(() => {
-    if (type === 'Professor') {
-        form.reset({ value: currentProfessor !== 'Unassigned' ? currentProfessor : '' });
-    } else {
-        form.reset({ value: '' });
+    if (isOpen) {
+      if (type === 'Professor') {
+          form.reset({ value: currentProfessor !== 'Unassigned' ? currentProfessor : '' });
+      } else {
+          form.reset({ value: '' });
+      }
     }
   }, [isOpen, type, currentProfessor, form]);
 
   const handleSubmit = (data: FormData) => {
-    onSave({type, classId, value: data.value});
+    if (type === 'Professor') {
+      onSave({type, classId, value: data.value});
+    } else {
+      // In a real app, you'd handle the file upload here.
+      // For this prototype, we'll just use a placeholder value.
+      onSave({type, classId, value: 'students from file'});
+    }
     onOpenChange(false);
   };
 
@@ -102,14 +111,14 @@ export function AssignDialog({ isOpen, onOpenChange, onSave, type, classId, clas
             ) : (
                 <FormField
                     control={form.control}
-                    name="value"
+                    name="studentFile"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Select Students</FormLabel>
+                        <FormLabel>Upload Student List</FormLabel>
                             <FormControl>
-                                <Input type="file" accept=".csv" />
+                                <Input type="file" accept=".csv" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} />
                             </FormControl>
-                        <FormMessage />
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
