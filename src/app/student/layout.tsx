@@ -74,17 +74,6 @@ export default function StudentLayout({
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
-             <SidebarMenuItem>
-                 <SidebarMenuButton
-                  asChild
-                  tooltip={{ children: "Scan QR Code" }}
-                >
-                  <Link href="/student/attendance">
-                    <QrCode />
-                    <span>Scan QR Code</span>
-                  </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={{ children: 'Logout' }}>
                 <Link href="/login?role=student">
