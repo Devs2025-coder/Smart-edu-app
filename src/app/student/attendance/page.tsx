@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -26,9 +25,11 @@ export default function StudentAttendancePage() {
     }
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.load();
     }
   }, []);
 
@@ -37,18 +38,20 @@ export default function StudentAttendancePage() {
     setIsScanning(false);
     stopCamera();
 
+    toast({
+      title: "Scanning is successful!",
+      description: "Your attendance has been marked.",
+    });
+
+    // Reset verifying state after a delay
     setTimeout(() => {
-      toast({
-        title: "Scanning is successful!",
-        description: "Your attendance has been marked.",
-      });
-      setIsVerifying(false);
-    }, 1000);
+        setIsVerifying(false);
+    }, 2000);
   }, [stopCamera, toast]);
   
   useEffect(() => {
     const tick = () => {
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
+      if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA && canvasRef.current) {
         const canvas = canvasRef.current;
         const video = videoRef.current;
         const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -64,10 +67,11 @@ export default function StudentAttendancePage() {
   
           if (code) {
             handleVerification();
-            return;
+            return; // Stop the loop
           }
         }
       }
+      // Continue the loop if no code is found
       animationFrameRef.current = requestAnimationFrame(tick);
     };
 
@@ -79,15 +83,11 @@ export default function StudentAttendancePage() {
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-             videoRef.current?.play().catch(e => console.error("Video play failed:", e));
-          };
-          videoRef.current.oncanplay = () => {
-            animationFrameRef.current = requestAnimationFrame(tick);
-          };
+          await videoRef.current.play(); // Explicitly play the video
+          animationFrameRef.current = requestAnimationFrame(tick);
         }
       } catch (error: any) {
-        console.error("Permission error:", error);
+        console.error("Camera permission error:", error);
         setHasPermission(false);
         toast({ variant: "destructive", title: "Camera Permission Required", description: "Camera access is required to scan the QR code." });
         setIsScanning(false);
@@ -100,22 +100,18 @@ export default function StudentAttendancePage() {
       stopCamera();
     }
 
+    // Cleanup function to stop the camera when the component unmounts or isScanning becomes false
     return () => {
       stopCamera();
-       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
     };
   }, [isScanning, handleVerification, stopCamera, toast]);
 
 
   const handleScanClick = () => {
-    if (isScanning) {
-      setIsScanning(false);
-    } else {
-      setIsScanning(true);
-      setIsVerifying(false);
-      setHasPermission(null);
+    setIsScanning(prev => !prev);
+    if (!isScanning) {
+        setIsVerifying(false);
+        setHasPermission(null);
     }
   }
 
@@ -129,7 +125,7 @@ export default function StudentAttendancePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
+          <canvas ref={canvasRef} className="hidden" />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
             <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
             
