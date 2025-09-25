@@ -23,7 +23,6 @@ export default function StudentAttendancePage() {
   const stopCamera = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
     }
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
@@ -83,7 +82,7 @@ export default function StudentAttendancePage() {
     if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
       const canvas = canvasRef.current;
       const video = videoRef.current;
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext('2d', { willReadFrequently: true });
 
       if(context) {
         canvas.height = video.videoHeight;
@@ -108,35 +107,27 @@ export default function StudentAttendancePage() {
     setIsScanning(true);
     setHasCameraPermission(null);
     setHasLocationPermission(null);
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-
 
     try {
-      const locationPromise = new Promise<GeolocationPosition>((resolve, reject) => {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      setHasCameraPermission(true);
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         if (!navigator.geolocation) {
           return reject(new Error("Geolocation not supported"));
         }
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
-
-      const [position, stream] = await Promise.all([
-        locationPromise,
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      ]);
-      
       setHasLocationPermission(true);
-      setHasCameraPermission(true);
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          if (isScanning) { // Check if still in scanning mode
-             animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
-          }
+        videoRef.current.oncanplay = () => {
+            if (videoRef.current) {
+                videoRef.current.play();
+                animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
+            }
         };
-        await videoRef.current.play();
       }
     } catch (error: any) {
       console.error("Permission error:", error.message);
@@ -178,24 +169,26 @@ export default function StudentAttendancePage() {
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-            {isScanning ? (
-                <>
-                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                    <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
-                        <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
-                        {!isVerifying && <p className="mt-4 font-semibold">Scan QR Code</p>}
-                    </div>
-                    {isVerifying && (
-                        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white gap-2">
-                            <Loader2 className="h-8 w-8 animate-spin"/>
-                            <span>QR Scanned! Verifying...</span>
-                        </div>
-                    )}
-                </>
-            ) : (
-               <div className="text-muted-foreground flex flex-col items-center gap-2">
+            <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+            
+            {isScanning && !isVerifying && (
+                <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
+                    <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
+                    <p className="mt-4 font-semibold">Scan QR Code</p>
+                </div>
+            )}
+
+            {!isScanning && (
+               <div className="absolute inset-0 text-muted-foreground flex flex-col items-center justify-center gap-2">
                     <Camera className="w-24 h-24" />
                     <p>Ready to scan</p>
+                </div>
+            )}
+            
+            {isVerifying && (
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin"/>
+                    <span>QR Scanned! Verifying...</span>
                 </div>
             )}
           </div>
