@@ -121,8 +121,8 @@ export default function AttendancePage() {
           class: selectedClass,
           timestamp: new Date().toISOString(),
           geo: {
-            lat: position.coords.latitude,
-            long: position.coords.longitude,
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
           }
         });
         setQrCodeData(qrData);
