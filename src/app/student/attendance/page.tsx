@@ -20,12 +20,11 @@ export default function StudentAttendancePage() {
   const animationFrameRef = useRef<number>();
   const { toast } = useToast();
 
-  const stopCamera = useCallback(() => {
+  const stopCameraAndScan = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
     }
-    if (videoRef.current && videoRef.current.srcObject) {
+    if (videoRef.current?.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
@@ -34,16 +33,15 @@ export default function StudentAttendancePage() {
 
   const handleVerification = useCallback((studentLocation: GeolocationCoordinates, qrDataString: string) => {
     setIsVerifying(true);
-    stopCamera();
+    stopCameraAndScan();
 
-    // Simulate verification delay
     setTimeout(() => {
       try {
         const qrData = JSON.parse(qrDataString);
         const professorLocation = qrData.geo;
 
         if (!professorLocation || typeof professorLocation.latitude !== 'number' || typeof professorLocation.longitude !== 'number') {
-          throw new Error("Invalid QR code data.");
+          throw new Error("Invalid QR code data format.");
         }
 
         const distance = haversine(
@@ -51,7 +49,7 @@ export default function StudentAttendancePage() {
           { latitude: professorLocation.latitude, longitude: professorLocation.longitude }
         );
 
-        if (distance <= 100) { // 100 meters threshold
+        if (distance <= 100) {
           toast({
             title: "Verification Successful!",
             description: "Your attendance has been marked.",
@@ -60,29 +58,29 @@ export default function StudentAttendancePage() {
           toast({
             variant: "destructive",
             title: "Verification Failed",
-            description: `You are approximately ${Math.round(distance)} meters away from the classroom.`,
+            description: `You are approximately ${Math.round(distance)} meters away from the classroom. Please move closer and try again.`,
           });
         }
       } catch (e) {
+        console.error("QR Verification Error:", e);
         toast({
           variant: "destructive",
           title: "Invalid QR Code",
-          description: "This QR code is not valid for attendance.",
+          description: "This QR code is not valid for attendance. Please scan the correct code.",
         });
       }
 
       setIsVerifying(false);
       setIsScanning(false);
     }, 1000);
-  }, [stopCamera, toast]);
-
-
+  }, [stopCameraAndScan, toast]);
+  
   const tick = useCallback((studentLocation: GeolocationCoordinates) => {
     if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
       const canvas = canvasRef.current;
       const video = videoRef.current;
       const context = canvas.getContext('2d', { willReadFrequently: true });
-
+  
       if (context) {
         canvas.height = video.videoHeight;
         canvas.width = video.videoWidth;
@@ -91,10 +89,10 @@ export default function StudentAttendancePage() {
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: "dontInvert",
         });
-
+  
         if (code) {
           handleVerification(studentLocation, code.data);
-          return; // Stop the loop once a code is found
+          return;
         }
       }
     }
@@ -102,90 +100,70 @@ export default function StudentAttendancePage() {
   }, [handleVerification]);
 
   useEffect(() => {
-    const startScan = async () => {
-      if (!isScanning) {
-        stopCamera();
-        return;
-      }
-
-      setHasCameraPermission(null);
-      setHasLocationPermission(null);
+    // This effect handles the camera and scanning logic
+    if (isScanning) {
       let stream: MediaStream | null = null;
-      try {
-        // Request permissions
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        setHasCameraPermission(true);
 
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          if (!navigator.geolocation) {
-            return reject(new Error("Geolocation not supported"));
+      const startScan = async () => {
+        try {
+          // Reset permissions state on each attempt
+          setHasCameraPermission(true);
+          setHasLocationPermission(true);
+
+          // Get permissions and data in parallel
+          const [mediaStream, geoPosition] = await Promise.all([
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }),
+            new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true });
+            })
+          ]);
+          
+          stream = mediaStream;
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            // Use onloadedmetadata to ensure video dimensions are available
+            videoRef.current.onloadedmetadata = () => {
+              if (videoRef.current) {
+                videoRef.current.play().then(() => {
+                  // Start scanning loop
+                  animationFrameRef.current = requestAnimationFrame(() => tick(geoPosition.coords));
+                }).catch(e => console.error("Video play failed:", e));
+              }
+            };
           }
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          });
-        });
-        setHasLocationPermission(true);
-        
-        // If everything is successful, setup the video and start scanning
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            if (videoRef.current) {
-              videoRef.current.play().catch(e => console.error("Video play failed:", e));
-              animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
-            }
-          };
-        }
-
-      } catch (error: any) {
-        console.error("Permission error:", error);
-        let title = "Error";
-        let description = "Could not access camera or location.";
-        
-        if (error.name === 'NotAllowedError' || error.message.includes('permission denied')) {
-            // Check if it's a location error first, as it's more specific
-            if (error.code === 1 && 'geolocation' in navigator && error.message.toLowerCase().includes('location')){
-                title = "Location Access Denied";
-                description = "Please grant location access to continue.";
-                setHasLocationPermission(false);
-            } else { // Assume camera error otherwise
-                title = "Camera Access Denied";
-                description = "Please grant camera access to continue.";
-                setHasCameraPermission(false);
-            }
-        } else if (error.name === 'NotFoundError') {
-            title = "Camera not found";
-            description = "No camera was found on this device.";
+        } catch (error: any) {
+          console.error("Permission error:", error);
+          if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
             setHasCameraPermission(false);
-        } else if (error.name === 'TimeoutError') {
-            title = "Location Timeout";
-            description = "Could not get your location in time. Please try again.";
             setHasLocationPermission(false);
+          }
+          toast({ variant: "destructive", title: "Permissions Required", description: "Camera and location access are required to scan the QR code." });
+          setIsScanning(false);
         }
-        
-        toast({ variant: "destructive", title, description });
-        setIsScanning(false);
-        stopCamera();
-      }
-    };
-    
-    startScan();
+      };
 
-    // Cleanup function to stop camera when component unmounts or isScanning becomes false
-    return () => {
-      stopCamera();
-    };
-  }, [isScanning, stopCamera, tick, toast]);
+      startScan();
+
+      // Cleanup function
+      return () => {
+        stopCameraAndScan();
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      };
+    } else {
+      stopCameraAndScan();
+    }
+  }, [isScanning, stopCameraAndScan, tick, toast]);
 
 
   const handleScanClick = () => {
     if (isScanning) {
       setIsScanning(false);
-      setIsVerifying(false);
     } else {
       setIsScanning(true);
+      setIsVerifying(false);
     }
   }
 
@@ -201,9 +179,9 @@ export default function StudentAttendancePage() {
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
           <canvas ref={canvasRef} style={{ display: 'none' }} />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-            <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+            <video ref={videoRef} className="w-full h-full object-cover" muted playsInline autoPlay/>
             
-            {isScanning && !isVerifying && hasCameraPermission && (
+            {isScanning && !isVerifying && (
                 <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center pointer-events-none" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
                     <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
                     <p className="mt-4 font-semibold">Scan QR Code</p>
