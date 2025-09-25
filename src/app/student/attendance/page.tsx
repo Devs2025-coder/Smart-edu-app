@@ -32,46 +32,50 @@ export default function StudentAttendancePage() {
     }
   }, []);
 
-  const handleVerification = (studentLocation: GeolocationCoordinates, qrDataString: string) => {
+  const handleVerification = useCallback((studentLocation: GeolocationCoordinates, qrDataString: string) => {
     setIsVerifying(true);
     stopCamera();
 
-    try {
-      const qrData = JSON.parse(qrDataString);
-      const professorLocation = qrData.geo;
+    // Simulate verification delay
+    setTimeout(() => {
+      try {
+        const qrData = JSON.parse(qrDataString);
+        const professorLocation = qrData.geo;
 
-      if (!professorLocation || !professorLocation.latitude || !professorLocation.longitude) {
-        throw new Error("Invalid QR code data.");
-      }
-      
-      const distance = haversine(
-        { latitude: studentLocation.latitude, longitude: studentLocation.longitude },
-        { latitude: professorLocation.latitude, longitude: professorLocation.longitude }
-      );
+        if (!professorLocation || typeof professorLocation.latitude !== 'number' || typeof professorLocation.longitude !== 'number') {
+          throw new Error("Invalid QR code data.");
+        }
 
-      if (distance <= 100) { // 100 meters threshold
-        toast({
-          title: "Verification Successful!",
-          description: "Your attendance has been marked.",
-        });
-      } else {
+        const distance = haversine(
+          { latitude: studentLocation.latitude, longitude: studentLocation.longitude },
+          { latitude: professorLocation.latitude, longitude: professorLocation.longitude }
+        );
+
+        if (distance <= 100) { // 100 meters threshold
+          toast({
+            title: "Verification Successful!",
+            description: "Your attendance has been marked.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Verification Failed",
+            description: `You are approximately ${Math.round(distance)} meters away from the classroom.`,
+          });
+        }
+      } catch (e) {
         toast({
           variant: "destructive",
-          title: "Verification Failed",
-          description: `You are approximately ${Math.round(distance)} meters away from the classroom.`,
+          title: "Invalid QR Code",
+          description: "This QR code is not valid for attendance.",
         });
       }
-    } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Invalid QR Code",
-        description: "This QR code is not valid for attendance.",
-      });
-    }
-    
-    setIsVerifying(false);
-    setIsScanning(false);
-  };
+
+      setIsVerifying(false);
+      setIsScanning(false);
+    }, 1000);
+  }, [stopCamera, toast]);
+
 
   const tick = useCallback((studentLocation: GeolocationCoordinates) => {
     if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
@@ -79,7 +83,7 @@ export default function StudentAttendancePage() {
       const video = videoRef.current;
       const context = canvas.getContext('2d', { willReadFrequently: true });
 
-      if(context) {
+      if (context) {
         canvas.height = video.videoHeight;
         canvas.width = video.videoWidth;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -90,80 +94,90 @@ export default function StudentAttendancePage() {
 
         if (code) {
           handleVerification(studentLocation, code.data);
-          return; // Stop the loop
+          return; // Stop the loop once a code is found
         }
       }
     }
     animationFrameRef.current = requestAnimationFrame(() => tick(studentLocation));
   }, [handleVerification]);
 
-  const startScan = useCallback(async () => {
-    setHasCameraPermission(null);
-    setHasLocationPermission(null);
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      setHasCameraPermission(true);
-
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        if (!navigator.geolocation) {
-          return reject(new Error("Geolocation not supported"));
-        }
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
-        });
-      });
-      setHasLocationPermission(true);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.oncanplay = () => {
-          if (videoRef.current) {
-            videoRef.current.play().catch(e => console.error("Video play failed:", e));
-            animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
-          }
-        };
-      }
-    } catch (error: any) {
-      console.error("Permission error:", error);
-      let title = "Error";
-      let description = "Could not access camera or location.";
-      if (error.name === 'NotAllowedError' || error.message.includes('permission denied')) {
-        if(error.code === 1 && navigator.geolocation){ // Geolocation permission denied
-            title = "Location Access Denied";
-            description = "Please grant location access to continue.";
-            setHasLocationPermission(false);
-        } else {
-            title = "Camera Access Denied";
-            description = "Please grant camera access to continue.";
-            setHasCameraPermission(false);
-        }
-      } else if (error.name === 'NotFoundError') {
-        title = "Camera not found";
-        description = "No camera was found on this device.";
-        setHasCameraPermission(false);
-      }
-      
-      toast({ variant: "destructive", title, description });
-      setIsScanning(false);
-      stopCamera();
-    }
-  }, [stopCamera, tick, toast]);
-
   useEffect(() => {
-    if (isScanning) {
-      startScan();
-    } else {
-      stopCamera();
-    }
+    const startScan = async () => {
+      if (!isScanning) {
+        stopCamera();
+        return;
+      }
+
+      setHasCameraPermission(null);
+      setHasLocationPermission(null);
+      let stream: MediaStream | null = null;
+      try {
+        // Request permissions
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        setHasCameraPermission(true);
+
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          if (!navigator.geolocation) {
+            return reject(new Error("Geolocation not supported"));
+          }
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0,
+          });
+        });
+        setHasLocationPermission(true);
+        
+        // If everything is successful, setup the video and start scanning
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            if (videoRef.current) {
+              videoRef.current.play().catch(e => console.error("Video play failed:", e));
+              animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
+            }
+          };
+        }
+
+      } catch (error: any) {
+        console.error("Permission error:", error);
+        let title = "Error";
+        let description = "Could not access camera or location.";
+        
+        if (error.name === 'NotAllowedError' || error.message.includes('permission denied')) {
+            // Check if it's a location error first, as it's more specific
+            if (error.code === 1 && 'geolocation' in navigator && error.message.toLowerCase().includes('location')){
+                title = "Location Access Denied";
+                description = "Please grant location access to continue.";
+                setHasLocationPermission(false);
+            } else { // Assume camera error otherwise
+                title = "Camera Access Denied";
+                description = "Please grant camera access to continue.";
+                setHasCameraPermission(false);
+            }
+        } else if (error.name === 'NotFoundError') {
+            title = "Camera not found";
+            description = "No camera was found on this device.";
+            setHasCameraPermission(false);
+        } else if (error.name === 'TimeoutError') {
+            title = "Location Timeout";
+            description = "Could not get your location in time. Please try again.";
+            setHasLocationPermission(false);
+        }
+        
+        toast({ variant: "destructive", title, description });
+        setIsScanning(false);
+        stopCamera();
+      }
+    };
     
-    // Cleanup function to stop camera when component unmounts
+    startScan();
+
+    // Cleanup function to stop camera when component unmounts or isScanning becomes false
     return () => {
       stopCamera();
     };
-  }, [isScanning, startScan, stopCamera]);
+  }, [isScanning, stopCamera, tick, toast]);
 
 
   const handleScanClick = () => {
@@ -189,14 +203,14 @@ export default function StudentAttendancePage() {
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
             <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
             
-            {isScanning && !isVerifying && (
+            {isScanning && !isVerifying && hasCameraPermission && (
                 <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center pointer-events-none" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
                     <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
                     <p className="mt-4 font-semibold">Scan QR Code</p>
                 </div>
             )}
 
-            {!isScanning && (
+            {!isScanning && !isVerifying && (
                <div className="absolute inset-0 text-muted-foreground flex flex-col items-center justify-center gap-2">
                     <Camera className="w-24 h-24" />
                     <p>Ready to scan</p>
