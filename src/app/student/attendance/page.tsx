@@ -119,8 +119,7 @@ export default function StudentAttendancePage() {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        // The `onloadedmetadata` event is more reliable than `oncanplay` for getting dimensions.
-        videoRef.current.onloadedmetadata = () => {
+        videoRef.current.oncanplay = () => {
           if (videoRef.current) {
             videoRef.current.play().catch(e => console.error("Video play failed:", e));
             animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
