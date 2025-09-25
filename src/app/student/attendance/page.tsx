@@ -63,7 +63,7 @@ export default function StudentAttendancePage() {
               setTimeout(() => {
                 setIsVerifying(false);
               }, 2000);
-              return;
+              return; // Stop the loop
             }
           } catch(e) {
             console.error("Error scanning QR code", e);
@@ -71,6 +71,7 @@ export default function StudentAttendancePage() {
         }
       }
     }
+    // Continue the loop
     animationFrameRef.current = requestAnimationFrame(tick);
   }, [toast]);
 
@@ -135,6 +136,7 @@ export default function StudentAttendancePage() {
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
           <canvas ref={canvasRef} className="hidden" />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
+            {/* The video element is always rendered to prevent race conditions with refs */}
             <video ref={videoRef} className={cn("w-full h-full object-cover", { "hidden": !isScanning })} muted playsInline />
             
             {isScanning && hasCameraPermission && !isVerifying && (
