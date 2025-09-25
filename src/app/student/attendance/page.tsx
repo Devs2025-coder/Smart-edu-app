@@ -48,10 +48,10 @@ export default function StudentAttendancePage() {
     // In a real app, this data would come from the QR scanner library
     const professorQrData = JSON.parse(MOCK_PROFESSOR_QR_DATA);
     
-    const distance = haversine(
-        { lat: studentCoords.latitude, lon: studentCoords.longitude },
-        { lat: professorQrData.geo.lat, lon: professorQrData.geo.long }
-    );
+    const studentLocation = { latitude: studentCoords.latitude, longitude: studentCoords.longitude };
+    const professorLocation = { latitude: professorQrData.geo.lat, longitude: professorQrData.geo.long };
+
+    const distance = haversine(studentLocation, professorLocation);
     
     setTimeout(() => { // Simulate verification delay
       if (distance <= MAX_DISTANCE_METERS) {
