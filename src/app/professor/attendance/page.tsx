@@ -83,7 +83,7 @@ export default function AttendancePage() {
     );
   };
   
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = (checked: boolean | string) => {
     const newStatus = checked ? 'present' : 'absent';
     setStudents(students.map(s => ({ ...s, status: newStatus })));
   };
@@ -151,7 +151,7 @@ export default function AttendancePage() {
   };
 
   const allPresent = students.every(s => s.status === 'present');
-  const somePresent = students.some(s => s.status === 'present') && !allPresent;
+  const somePresent = students.some(s => s.status === 'present' || s.status === 'late') && !allPresent;
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -232,7 +232,7 @@ export default function AttendancePage() {
                 <TableRow>
                    <TableHead className="w-[50px]">
                     <Checkbox 
-                      checked={allPresent}
+                      checked={allPresent ? true : (somePresent ? 'indeterminate' : false)}
                       onCheckedChange={handleSelectAll}
                       aria-label="Select all"
                     />

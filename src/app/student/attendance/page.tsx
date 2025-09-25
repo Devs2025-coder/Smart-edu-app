@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -9,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import jsQR from 'jsqr';
 
 export default function StudentAttendancePage() {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,43 +20,53 @@ export default function StudentAttendancePage() {
   const { toast } = useToast();
 
   const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
-      videoRef.current.load();
     }
   }, []);
 
-  const handleVerification = useCallback(() => {
-    setIsVerifying(true);
-    setIsScanning(false);
-    stopCamera();
+  const startScan = useCallback(async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported on this browser.");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      streamRef.current = stream;
+      setHasCameraPermission(true);
 
-    toast({
-      title: "Scanning is successful!",
-      description: "Your attendance has been marked.",
-    });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.oncanplay = () => {
+          if (videoRef.current) {
+            videoRef.current.play();
+            tick();
+          }
+        };
+      }
+    } catch (err) {
+      setHasCameraPermission(false);
+      console.error("Error accessing camera:", err);
+      toast({
+        variant: "destructive",
+        title: "Camera Permission Denied",
+        description: "Please enable camera permissions in your browser settings to use this feature.",
+      });
+      setIsScanning(false);
+    }
+  }, []);
 
-    // Reset verifying state after a delay
-    setTimeout(() => {
-        setIsVerifying(false);
-    }, 2000);
-  }, [stopCamera, toast]);
-  
-  useEffect(() => {
-    const tick = () => {
-      if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA && canvasRef.current) {
-        const canvas = canvasRef.current;
-        const video = videoRef.current;
-        const context = canvas.getContext('2d', { willReadFrequently: true });
-  
+  const tick = () => {
+    if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const context = canvas.getContext('2d');
         if (context) {
           canvas.height = video.videoHeight;
           canvas.width = video.videoWidth;
@@ -64,55 +75,38 @@ export default function StudentAttendancePage() {
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: "dontInvert",
           });
-  
           if (code) {
-            handleVerification();
-            return; // Stop the loop
+            setIsVerifying(true);
+            setIsScanning(false);
+            stopCamera();
+            toast({
+              title: "Scanning is successful!",
+            });
+            setTimeout(() => {
+              setIsVerifying(false);
+            }, 2000);
+            return;
           }
         }
       }
-      // Continue the loop if no code is found
-      animationFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    const startScan = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        streamRef.current = stream;
-        setHasPermission(true);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play(); // Explicitly play the video
-          animationFrameRef.current = requestAnimationFrame(tick);
-        }
-      } catch (error: any) {
-        console.error("Camera permission error:", error);
-        setHasPermission(false);
-        toast({ variant: "destructive", title: "Camera Permission Required", description: "Camera access is required to scan the QR code." });
-        setIsScanning(false);
-      }
-    };
-
+    }
+    animationFrameRef.current = requestAnimationFrame(tick);
+  };
+  
+  useEffect(() => {
     if (isScanning) {
       startScan();
     } else {
       stopCamera();
     }
-
-    // Cleanup function to stop the camera when the component unmounts or isScanning becomes false
     return () => {
       stopCamera();
     };
-  }, [isScanning, handleVerification, stopCamera, toast]);
+  }, [isScanning, startScan, stopCamera]);
 
 
   const handleScanClick = () => {
     setIsScanning(prev => !prev);
-    if (!isScanning) {
-        setIsVerifying(false);
-        setHasPermission(null);
-    }
   }
 
   return (
@@ -129,7 +123,7 @@ export default function StudentAttendancePage() {
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
             <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
             
-            {isScanning && hasPermission && !isVerifying && (
+            {isScanning && hasCameraPermission && !isVerifying && (
                 <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center pointer-events-none" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
                     <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
                     <p className="mt-4 font-semibold">Scan QR Code</p>
@@ -151,7 +145,7 @@ export default function StudentAttendancePage() {
             )}
           </div>
           
-           {hasPermission === false && !isScanning && (
+           {hasCameraPermission === false && (
             <Alert variant="destructive" className="w-full max-w-md">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Permissions Denied</AlertTitle>
