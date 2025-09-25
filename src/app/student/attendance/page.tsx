@@ -23,6 +23,7 @@ export default function StudentAttendancePage() {
   const stopCamera = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
     }
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
@@ -30,12 +31,6 @@ export default function StudentAttendancePage() {
       videoRef.current.srcObject = null;
     }
   }, []);
-  
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [stopCamera]);
 
   const handleVerification = (studentLocation: GeolocationCoordinates, qrDataString: string) => {
     setIsVerifying(true);
@@ -48,7 +43,7 @@ export default function StudentAttendancePage() {
       if (!professorLocation || !professorLocation.latitude || !professorLocation.longitude) {
         throw new Error("Invalid QR code data.");
       }
-
+      
       const distance = haversine(
         { latitude: studentLocation.latitude, longitude: studentLocation.longitude },
         { latitude: professorLocation.latitude, longitude: professorLocation.longitude }
@@ -77,8 +72,8 @@ export default function StudentAttendancePage() {
     setIsVerifying(false);
     setIsScanning(false);
   };
-  
-  const tick = (studentLocation: GeolocationCoordinates) => {
+
+  const tick = useCallback((studentLocation: GeolocationCoordinates) => {
     if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
       const canvas = canvasRef.current;
       const video = videoRef.current;
@@ -100,11 +95,9 @@ export default function StudentAttendancePage() {
       }
     }
     animationFrameRef.current = requestAnimationFrame(() => tick(studentLocation));
-  };
+  }, [handleVerification]);
 
-
-  const startScan = async () => {
-    setIsScanning(true);
+  const startScan = useCallback(async () => {
     setHasCameraPermission(null);
     setHasLocationPermission(null);
 
@@ -116,44 +109,70 @@ export default function StudentAttendancePage() {
         if (!navigator.geolocation) {
           return reject(new Error("Geolocation not supported"));
         }
-        navigator.geolocation.getCurrentPosition(resolve, reject);
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        });
       });
       setHasLocationPermission(true);
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.oncanplay = () => {
-            if (videoRef.current) {
-                videoRef.current.play();
-                animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
-            }
+        // The `onloadedmetadata` event is more reliable than `oncanplay` for getting dimensions.
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play().catch(e => console.error("Video play failed:", e));
+            animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
+          }
         };
       }
     } catch (error: any) {
-      console.error("Permission error:", error.message);
+      console.error("Permission error:", error);
+      let title = "Error";
+      let description = "Could not access camera or location.";
       if (error.name === 'NotAllowedError' || error.message.includes('permission denied')) {
-        if(error.message.toLowerCase().includes('geolocation')){
+        if(error.code === 1 && navigator.geolocation){ // Geolocation permission denied
+            title = "Location Access Denied";
+            description = "Please grant location access to continue.";
             setHasLocationPermission(false);
-            toast({ variant: "destructive", title: "Location Access Denied"});
         } else {
+            title = "Camera Access Denied";
+            description = "Please grant camera access to continue.";
             setHasCameraPermission(false);
-            toast({ variant: "destructive", title: "Camera Access Denied"});
         }
-      } else {
-        toast({ variant: "destructive", title: "Error", description: "Could not access camera or location." });
+      } else if (error.name === 'NotFoundError') {
+        title = "Camera not found";
+        description = "No camera was found on this device.";
+        setHasCameraPermission(false);
       }
+      
+      toast({ variant: "destructive", title, description });
       setIsScanning(false);
       stopCamera();
     }
-  };
+  }, [stopCamera, tick, toast]);
+
+  useEffect(() => {
+    if (isScanning) {
+      startScan();
+    } else {
+      stopCamera();
+    }
+    
+    // Cleanup function to stop camera when component unmounts
+    return () => {
+      stopCamera();
+    };
+  }, [isScanning, startScan, stopCamera]);
+
 
   const handleScanClick = () => {
     if (isScanning) {
       setIsScanning(false);
       setIsVerifying(false);
-      stopCamera();
     } else {
-      startScan();
+      setIsScanning(true);
     }
   }
 
@@ -172,7 +191,7 @@ export default function StudentAttendancePage() {
             <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
             
             {isScanning && !isVerifying && (
-                <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
+                <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center pointer-events-none" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
                     <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
                     <p className="mt-4 font-semibold">Scan QR Code</p>
                 </div>
@@ -198,7 +217,9 @@ export default function StudentAttendancePage() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Permissions Required</AlertTitle>
               <AlertDescription>
-                Please grant both camera and location access to scan the QR code.
+                {hasCameraPermission === false && "Camera access is required. "}
+                {hasLocationPermission === false && "Location access is required. "}
+                Please grant access to scan the QR code.
               </AlertDescription>
             </Alert>
           )}
