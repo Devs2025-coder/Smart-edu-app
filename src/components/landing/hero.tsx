@@ -14,11 +14,11 @@ export function Hero() {
   return (
     <section className="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center text-center">
       <Image
-        src="https://picsum.photos/seed/1/1800/1200"
-        alt="Educational environment"
+        src="https://picsum.photos/seed/student-phone/1800/1200"
+        alt="Student using a phone for attendance"
         fill
         className="object-cover -z-10 brightness-[0.4]"
-        data-ai-hint="education technology"
+        data-ai-hint="student phone"
       />
       <div className="container px-4 md:px-6 text-white">
         <div className="max-w-4xl mx-auto">
