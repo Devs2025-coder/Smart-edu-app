@@ -101,6 +101,13 @@ export default function SuperAdminSettingsPage() {
         }
     };
 
+    const handleSystemAction = (action: string) => {
+        toast({
+            title: 'Action Triggered',
+            description: `The "${action}" functionality is a placeholder and will be implemented in a future update.`,
+        });
+    };
+
 
   return (
     <div className="grid gap-6">
@@ -271,7 +278,7 @@ export default function SuperAdminSettingsPage() {
                                                     <p className="text-sm text-muted-foreground">Used for sending transactional emails.</p>
                                                 </div>
                                             </div>
-                                            <Button variant="secondary">Configure</Button>
+                                            <Button variant="secondary" onClick={() => handleSystemAction('SMTP Configuration')}>Configure</Button>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -280,7 +287,7 @@ export default function SuperAdminSettingsPage() {
                                         <CardTitle className="text-lg">Application Logs</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <Button variant="outline">View Application Logs</Button>
+                                        <Button variant="outline" onClick={() => handleSystemAction('View Application Logs')}>View Application Logs</Button>
                                          <p className="text-sm text-muted-foreground mt-2">Access detailed system logs for debugging and monitoring.</p>
                                     </CardContent>
                                 </Card>
@@ -354,3 +361,4 @@ export default function SuperAdminSettingsPage() {
     </div>
   );
 }
+
