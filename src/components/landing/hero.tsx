@@ -15,18 +15,18 @@ export function Hero() {
   return (
     <section className="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center text-center">
       <Image
-        src="https://picsum.photos/seed/college-students/1800/1200"
-        alt="Students in a college campus"
+        src="https://picsum.photos/seed/students-library/1800/1200"
+        alt="Students studying in a library"
         fill
-        className="object-cover -z-10 brightness-[0.4]"
-        data-ai-hint="college students"
+        className="object-cover -z-10 brightness-[0.8]"
+        data-ai-hint="college students library"
       />
-      <div className="container px-4 md:px-6 text-white">
+      <div className="container px-4 md:px-6 text-foreground">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-headline font-bold md:text-6xl lg:text-7xl tracking-tighter mb-4 animate-fade-in-up">
             Smart Curriculum & Attendance Management for Schools & Colleges
           </h1>
-          <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-8 animate-fade-in-up animation-delay-300">
+          <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-8 animate-fade-in-up animation-delay-300">
             Automate attendance, suggest personalized tasks, and boost
             productivity.
           </p>
