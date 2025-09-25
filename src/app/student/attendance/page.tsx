@@ -23,6 +23,7 @@ export default function StudentAttendancePage() {
   const stopCamera = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
     }
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
@@ -49,10 +50,10 @@ export default function StudentAttendancePage() {
         throw new Error("Invalid QR code data.");
       }
 
-      const distance = haversine(studentLocation, {
-        latitude: professorLocation.latitude,
-        longitude: professorLocation.longitude,
-      });
+      const distance = haversine(
+        { latitude: studentLocation.latitude, longitude: studentLocation.longitude },
+        { latitude: professorLocation.latitude, longitude: professorLocation.longitude }
+      );
 
       if (distance <= 100) { // 100 meters threshold
         toast({
@@ -107,28 +108,35 @@ export default function StudentAttendancePage() {
     setIsScanning(true);
     setHasCameraPermission(null);
     setHasLocationPermission(null);
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
 
-    // 1. Request Permissions in parallel
-    const [locationPromise, cameraPromise] = [
-      new Promise<GeolocationPosition>((resolve, reject) => {
+
+    try {
+      const locationPromise = new Promise<GeolocationPosition>((resolve, reject) => {
         if (!navigator.geolocation) {
           return reject(new Error("Geolocation not supported"));
         }
         navigator.geolocation.getCurrentPosition(resolve, reject);
-      }),
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    ];
+      });
 
-    try {
-      const [position, stream] = await Promise.all([locationPromise, cameraPromise]);
+      const [position, stream] = await Promise.all([
+        locationPromise,
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      ]);
+      
       setHasLocationPermission(true);
       setHasCameraPermission(true);
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadedmetadata = () => {
-           animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
+          if (isScanning) { // Check if still in scanning mode
+             animationFrameRef.current = requestAnimationFrame(() => tick(position.coords));
+          }
         };
+        await videoRef.current.play();
       }
     } catch (error: any) {
       console.error("Permission error:", error.message);
@@ -144,6 +152,7 @@ export default function StudentAttendancePage() {
         toast({ variant: "destructive", title: "Error", description: "Could not access camera or location." });
       }
       setIsScanning(false);
+      stopCamera();
     }
   };
 
