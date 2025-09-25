@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { MoveRight } from 'lucide-react';
@@ -14,11 +15,11 @@ export function Hero() {
   return (
     <section className="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center text-center">
       <Image
-        src="https://picsum.photos/seed/student-phone/1800/1200"
-        alt="Student using a phone for attendance"
+        src="https://picsum.photos/seed/college-students/1800/1200"
+        alt="Students in a college campus"
         fill
         className="object-cover -z-10 brightness-[0.4]"
-        data-ai-hint="student phone"
+        data-ai-hint="college students"
       />
       <div className="container px-4 md:px-6 text-white">
         <div className="max-w-4xl mx-auto">
