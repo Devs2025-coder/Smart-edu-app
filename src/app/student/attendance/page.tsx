@@ -8,6 +8,7 @@ import { QrCode, Camera, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import jsQR from 'jsqr';
+import { cn } from '@/lib/utils';
 
 export default function StudentAttendancePage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -51,7 +52,7 @@ export default function StudentAttendancePage() {
             });
 
             if (code) {
-              setIsScanning(false); // This will trigger the useEffect cleanup
+              setIsScanning(false);
               setIsVerifying(true);
               
               toast({
@@ -62,7 +63,7 @@ export default function StudentAttendancePage() {
               setTimeout(() => {
                 setIsVerifying(false);
               }, 2000);
-              return; // Exit the loop
+              return;
             }
           } catch(e) {
             console.error("Error scanning QR code", e);
@@ -110,7 +111,6 @@ export default function StudentAttendancePage() {
       stopCamera();
     }
 
-    // Cleanup function to be called when isScanning changes or component unmounts
     return () => {
       stopCamera();
     };
@@ -118,7 +118,7 @@ export default function StudentAttendancePage() {
 
   const handleScanClick = () => {
     if (!isScanning) {
-      setHasCameraPermission(null); // Reset permission status before scan attempt
+      setHasCameraPermission(null);
     }
     setIsScanning(prev => !prev);
   }
@@ -135,7 +135,6 @@ export default function StudentAttendancePage() {
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
           <canvas ref={canvasRef} className="hidden" />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-            {/* The video element is always rendered to prevent race conditions with refs */}
             <video ref={videoRef} className={cn("w-full h-full object-cover", { "hidden": !isScanning })} muted playsInline />
             
             {isScanning && hasCameraPermission && !isVerifying && (
