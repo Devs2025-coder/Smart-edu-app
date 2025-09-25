@@ -22,6 +22,7 @@ export default function StudentAttendancePage() {
   const stopCamera = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -29,89 +30,96 @@ export default function StudentAttendancePage() {
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
-      videoRef.current.removeEventListener('play', tick);
     }
   }, []);
-
+  
   const tick = useCallback(() => {
-    if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA) {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
       const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const context = canvas.getContext('2d', { willReadFrequently: true });
-        if (context) {
-          canvas.height = video.videoHeight;
-          canvas.width = video.videoWidth;
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const canvasElement = canvasRef.current;
+      if (canvasElement) {
+        const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
+        if (canvas) {
+          canvasElement.height = video.videoHeight;
+          canvasElement.width = video.videoWidth;
+          canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+          
           try {
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height, {
               inversionAttempts: "dontInvert",
             });
+
             if (code) {
+              setIsScanning(false); // This will trigger the useEffect cleanup
               setIsVerifying(true);
-              setIsScanning(false);
-              stopCamera();
+              
               toast({
                 title: "Scanning is successful!",
               });
+
+              // Simulate verification and reset
               setTimeout(() => {
                 setIsVerifying(false);
               }, 2000);
-              return; // Stop the loop
+              return; // Exit the loop
             }
-          } catch (e) {
-            console.error("Could not get image data from canvas", e);
+          } catch(e) {
+            console.error("Error scanning QR code", e);
           }
         }
       }
     }
     animationFrameRef.current = requestAnimationFrame(tick);
-  }, [toast, stopCamera]);
+  }, [toast]);
 
-  const startScan = useCallback(async () => {
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera not supported on this browser.");
-      }
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      streamRef.current = stream;
-      setHasCameraPermission(true);
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // The 'play' event listener ensures we start scanning only when the video is truly playing.
-        videoRef.current.addEventListener('play', tick);
-        videoRef.current.play().catch(e => console.error("Video play failed:", e));
-      }
-    } catch (err) {
-      setHasCameraPermission(false);
-      console.error("Error accessing camera:", err);
-      toast({
-        variant: "destructive",
-        title: "Camera Permission Denied",
-        description: "Please enable camera permissions in your browser settings to use this feature.",
-      });
-      setIsScanning(false);
-    }
-  }, [toast, tick]);
-  
   useEffect(() => {
     if (isScanning) {
+      const startScan = async () => {
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error("Camera not supported on this browser.");
+          }
+          
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          streamRef.current = stream;
+          setHasCameraPermission(true);
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.setAttribute("playsinline", "true"); // Required for iOS
+            videoRef.current.play().then(() => {
+                animationFrameRef.current = requestAnimationFrame(tick);
+            }).catch(e => console.error("Video play failed:", e));
+          }
+        } catch (err) {
+          console.error("Error accessing camera:", err);
+          setHasCameraPermission(false);
+          setIsScanning(false);
+          toast({
+            variant: "destructive",
+            title: "Camera Permission Denied",
+            description: "Please enable camera permissions in your browser settings to use this feature.",
+          });
+        }
+      };
+
       startScan();
     } else {
       stopCamera();
     }
 
-    // Cleanup function to stop the camera when the component unmounts
+    // Cleanup function to be called when isScanning changes or component unmounts
     return () => {
       stopCamera();
     };
-  }, [isScanning, startScan, stopCamera]);
-
+  }, [isScanning, stopCamera, tick, toast]);
 
   const handleScanClick = () => {
+    if (!isScanning) {
+      setHasCameraPermission(null); // Reset permission status before scan attempt
+    }
     setIsScanning(prev => !prev);
   }
 
@@ -127,12 +135,13 @@ export default function StudentAttendancePage() {
         <CardContent className="flex flex-col items-center justify-center gap-6 p-8">
           <canvas ref={canvasRef} className="hidden" />
           <div className="w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center relative">
-            <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
+            {/* The video element is always rendered to prevent race conditions with refs */}
+            <video ref={videoRef} className={cn("w-full h-full object-cover", { "hidden": !isScanning })} muted playsInline />
             
             {isScanning && hasCameraPermission && !isVerifying && (
                 <div className="absolute inset-0 bg-transparent flex flex-col items-center justify-center text-white p-4 text-center pointer-events-none" style={{ textShadow: '0 0 8px rgba(0,0,0,0.7)' }}>
                     <div className="border-2 border-dashed border-white/50 w-3/4 h-3/4 rounded-lg"></div>
-                    <p className="mt-4 font-semibold">Scan QR Code</p>
+                    <p className="mt-4 font-semibold">Scanning for QR Code...</p>
                 </div>
             )}
 
@@ -146,7 +155,7 @@ export default function StudentAttendancePage() {
             {isVerifying && (
                 <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white gap-2">
                     <Loader2 className="h-8 w-8 animate-spin"/>
-                    <span>QR Scanned! Verifying...</span>
+                    <span>Verifying...</span>
                 </div>
             )}
           </div>
