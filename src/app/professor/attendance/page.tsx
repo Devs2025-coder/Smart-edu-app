@@ -84,7 +84,7 @@ export default function AttendancePage() {
   };
   
   const handleSelectAll = (checked: boolean | string) => {
-    const newStatus = checked ? 'present' : 'absent';
+    const newStatus = checked === true ? 'present' : 'absent';
     setStudents(students.map(s => ({ ...s, status: newStatus })));
   };
   
@@ -151,7 +151,7 @@ export default function AttendancePage() {
   };
 
   const allPresent = students.every(s => s.status === 'present');
-  const somePresent = students.some(s => s.status === 'present' || s.status === 'late') && !allPresent;
+  const somePresent = !allPresent && students.some(s => s.status === 'present' || s.status === 'late');
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

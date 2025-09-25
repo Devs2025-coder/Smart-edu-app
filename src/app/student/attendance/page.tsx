@@ -25,29 +25,65 @@ export default function StudentAttendancePage() {
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.removeEventListener('play', tick);
     }
   }, []);
+
+  const tick = useCallback(() => {
+    if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (context) {
+          canvas.height = video.videoHeight;
+          canvas.width = video.videoWidth;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          try {
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: "dontInvert",
+            });
+            if (code) {
+              setIsVerifying(true);
+              setIsScanning(false);
+              stopCamera();
+              toast({
+                title: "Scanning is successful!",
+              });
+              setTimeout(() => {
+                setIsVerifying(false);
+              }, 2000);
+              return; // Stop the loop
+            }
+          } catch (e) {
+            console.error("Could not get image data from canvas", e);
+          }
+        }
+      }
+    }
+    animationFrameRef.current = requestAnimationFrame(tick);
+  }, [toast, stopCamera]);
 
   const startScan = useCallback(async () => {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Camera not supported on this browser.");
       }
+      
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       streamRef.current = stream;
       setHasCameraPermission(true);
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.oncanplay = () => {
-          if (videoRef.current) {
-            videoRef.current.play();
-            tick();
-          }
-        };
+        // The 'play' event listener ensures we start scanning only when the video is truly playing.
+        videoRef.current.addEventListener('play', tick);
+        videoRef.current.play().catch(e => console.error("Video play failed:", e));
       }
     } catch (err) {
       setHasCameraPermission(false);
@@ -59,39 +95,7 @@ export default function StudentAttendancePage() {
       });
       setIsScanning(false);
     }
-  }, []);
-
-  const tick = () => {
-    if (videoRef.current?.readyState === videoRef.current?.HAVE_ENOUGH_DATA) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const context = canvas.getContext('2d');
-        if (context) {
-          canvas.height = video.videoHeight;
-          canvas.width = video.videoWidth;
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-          });
-          if (code) {
-            setIsVerifying(true);
-            setIsScanning(false);
-            stopCamera();
-            toast({
-              title: "Scanning is successful!",
-            });
-            setTimeout(() => {
-              setIsVerifying(false);
-            }, 2000);
-            return;
-          }
-        }
-      }
-    }
-    animationFrameRef.current = requestAnimationFrame(tick);
-  };
+  }, [toast, tick]);
   
   useEffect(() => {
     if (isScanning) {
@@ -99,6 +103,8 @@ export default function StudentAttendancePage() {
     } else {
       stopCamera();
     }
+
+    // Cleanup function to stop the camera when the component unmounts
     return () => {
       stopCamera();
     };
