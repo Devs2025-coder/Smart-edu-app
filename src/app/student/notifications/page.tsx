@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -18,10 +19,10 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Bell, CalendarCheck, Check, ClipboardList, Settings, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
-const notifications = [
+const initialNotifications = [
   {
     id: 1,
     type: 'task',
@@ -80,6 +81,30 @@ const NotificationIcon = ({ type }: { type: string }) => {
 
 
 export default function StudentNotificationsPage() {
+    const [notifications, setNotifications] = useState(initialNotifications);
+    const [filter, setFilter] = useState('all');
+    const { toast } = useToast();
+
+    const handleMarkAllRead = () => {
+        setNotifications(notifications.map(n => ({ ...n, read: true })));
+        toast({
+            title: 'All notifications marked as read',
+        });
+    };
+
+    const filteredNotifications = useMemo(() => {
+        if (filter === 'all') {
+            return notifications;
+        }
+        if (filter === 'unread') {
+            return notifications.filter(n => !n.read);
+        }
+        if (filter === 'task') {
+            return notifications.filter(n => n.type === 'task' || n.type === 'deadline');
+        }
+        return notifications.filter(n => n.type === filter);
+    }, [notifications, filter]);
+
     return (
         <div className="grid gap-6">
             <Card>
@@ -91,11 +116,11 @@ export default function StudentNotificationsPage() {
                         </CardDescription>
                     </div>
                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
                             <Check className="mr-2 h-4 w-4"/>
                             Mark all as read
                         </Button>
-                         <Select defaultValue="all">
+                         <Select value={filter} onValueChange={setFilter}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Filter notifications" />
                             </SelectTrigger>
@@ -111,29 +136,37 @@ export default function StudentNotificationsPage() {
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-4">
-                        {notifications.map((notification, index) => (
-                           <li key={notification.id}>
-                                <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
-                                    <div className="rounded-full bg-primary/10 p-2">
-                                        <NotificationIcon type={notification.type} />
+                        {filteredNotifications.length > 0 ? (
+                            filteredNotifications.map((notification, index) => (
+                               <li key={notification.id}>
+                                    <div className="flex items-start gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors">
+                                        <div className="rounded-full bg-primary/10 p-2">
+                                            <NotificationIcon type={notification.type} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className={`font-medium ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>{notification.title}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                            {notification.description}
+                                            </p>
+                                             <p className="text-xs text-muted-foreground mt-1">{notification.date}</p>
+                                        </div>
+                                        {!notification.read && <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>}
                                     </div>
-                                    <div className="flex-1">
-                                        <p className={`font-medium ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>{notification.title}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                        {notification.description}
-                                        </p>
-                                         <p className="text-xs text-muted-foreground mt-1">{notification.date}</p>
-                                    </div>
-                                    {!notification.read && <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>}
-                                </div>
-                                {index < notifications.length - 1 && <Separator />}
-                           </li>
-                        ))}
+                                    {index < filteredNotifications.length - 1 && <Separator />}
+                               </li>
+                            ))
+                        ) : (
+                            <div className="text-center py-10 text-muted-foreground">
+                                <p>No notifications match the current filter.</p>
+                            </div>
+                        )}
                     </ul>
                 </CardContent>
-                 <CardFooter className="flex justify-center">
-                    <Button variant="ghost">Load more</Button>
-                </CardFooter>
+                 {notifications.length > 5 && (
+                    <CardFooter className="flex justify-center">
+                        <Button variant="ghost">Load more</Button>
+                    </CardFooter>
+                 )}
             </Card>
         </div>
     );
