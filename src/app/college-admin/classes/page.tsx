@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +38,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ClassScheduleDialog } from '@/components/college-admin/class-schedule-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { AssignDialog } from '@/components/college-admin/assign-dialog';
 
 const initialExistingClasses = [
   { id: 'C1', branch: 'Computer Science', semester: '3', section: 'A', professor: 'Dr. Evelyn Reed', students: 60 },
@@ -58,7 +59,9 @@ const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 export default function ClassesPage() {
   const [scheduleData, setScheduleData] = useState(initialScheduleData);
   const [existingClasses, setExistingClasses] = useState(initialExistingClasses);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [assignDialogProps, setAssignDialogProps] = useState({ type: 'Professor', classId: '', currentProfessor: '' });
   const [editingPeriod, setEditingPeriod] = useState(null);
   const { toast } = useToast();
 
@@ -99,9 +102,7 @@ export default function ClassesPage() {
         const originalTime = editingPeriod?.time;
         let newScheduleData = [...currentSchedule];
 
-        // If the time was edited and it's different from the original
         if (originalTime && originalTime !== time) {
-            // Remove the period from the old time slot
             const oldTimeIndex = newScheduleData.findIndex(row => row.time === originalTime);
             if (oldTimeIndex !== -1) {
                 newScheduleData[oldTimeIndex][editingPeriod.day] = null;
@@ -111,17 +112,14 @@ export default function ClassesPage() {
         const targetTimeIndex = newScheduleData.findIndex(row => row.time === time);
 
         if (targetTimeIndex !== -1) {
-            // Time slot already exists, update it
             newScheduleData[targetTimeIndex] = {
                 ...newScheduleData[targetTimeIndex],
                 [day]: { ...rest }
             };
         } else {
-            // New time slot, create a new row
             const newRow = { time, M: null, T: null, W: null, Th: null, F: null };
             newRow[day] = { ...rest };
             newScheduleData.push(newRow);
-            // Sort by time
             newScheduleData.sort((a, b) => a.time.localeCompare(b.time));
         }
 
@@ -140,11 +138,35 @@ export default function ClassesPage() {
     }
   };
 
-  const handleOpenDialog = (period = null) => {
+  const handleOpenScheduleDialog = (period = null) => {
     setEditingPeriod(period);
-    setIsDialogOpen(true);
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleOpenAssignDialog = (type, classData) => {
+    setAssignDialogProps({
+      type: type,
+      classId: classData.id,
+      className: `${classData.branch} - Sem ${classData.semester} Sec ${classData.section}`,
+      currentProfessor: classData.professor
+    });
+    setIsAssignDialogOpen(true);
   };
   
+  const handleAssignSave = ({ type, classId, value }) => {
+    if (type === 'Professor') {
+      setExistingClasses(currentClasses =>
+        currentClasses.map(c =>
+          c.id === classId ? { ...c, professor: value } : c
+        )
+      );
+    }
+    toast({
+      title: `${type} Assigned`,
+      description: `${value} has been assigned to the class.`,
+    });
+  };
+
   const handlePublishTimetable = () => {
     toast({
       title: 'Timetable Published',
@@ -156,7 +178,7 @@ export default function ClassesPage() {
     if (!period) {
         return (
             <TableCell className="p-2 h-20 text-center">
-                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog({ day, time })}>
+                <Button variant="ghost" size="icon" onClick={() => handleOpenScheduleDialog({ day, time })}>
                     <Plus className="h-4 w-4 text-muted-foreground"/>
                 </Button>
             </TableCell>
@@ -178,7 +200,7 @@ export default function ClassesPage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleOpenDialog({ ...period, day, time })}>
+                        <DropdownMenuItem onClick={() => handleOpenScheduleDialog({ ...period, day, time })}>
                             <Edit className="mr-2 h-4 w-4"/> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDeletePeriod(day, time)} className="text-destructive">
@@ -272,8 +294,8 @@ export default function ClassesPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem><UserPlus className="mr-2 h-4 w-4"/>Assign Professor</DropdownMenuItem>
-                                                    <DropdownMenuItem><UserPlus className="mr-2 h-4 w-4"/>Assign Students</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleOpenAssignDialog('Professor', c)}><UserPlus className="mr-2 h-4 w-4"/>Assign Professor</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleOpenAssignDialog('Students', c)}><UserPlus className="mr-2 h-4 w-4"/>Assign Students</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -306,7 +328,7 @@ export default function ClassesPage() {
                                 <SelectContent><SelectItem value="a">Section A</SelectItem></SelectContent>
                             </Select>
                             <div className="flex-1" />
-                            <Button onClick={() => handleOpenDialog()} variant="outline"><PlusCircle className="mr-2 h-4 w-4"/>Add Period</Button>
+                            <Button onClick={() => handleOpenScheduleDialog()} variant="outline"><PlusCircle className="mr-2 h-4 w-4"/>Add Period</Button>
                             <Button onClick={handlePublishTimetable}><Clock className="mr-2 h-4 w-4"/>Publish Timetable</Button>
                         </div>
                         <div className="border rounded-lg overflow-x-auto">
@@ -334,11 +356,17 @@ export default function ClassesPage() {
         </CardContent>
       </Card>
        <ClassScheduleDialog 
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        isOpen={isScheduleDialogOpen}
+        onOpenChange={setIsScheduleDialogOpen}
         onSave={handleSavePeriod}
         periodData={editingPeriod}
       />
+      <AssignDialog
+        isOpen={isAssignDialogOpen}
+        onOpenChange={setIsAssignDialogOpen}
+        onSave={handleAssignSave}
+        {...assignDialogProps}
+       />
     </div>
   );
 }
