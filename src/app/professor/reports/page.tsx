@@ -96,8 +96,8 @@ export default function ReportsPage() {
     
     const filterKey = `${filters.class}-${filters.semester}-${filters.section}-${filters.range}`;
     
-    const attendanceData = allAttendanceData[filterKey] || allAttendanceData['cs101-3-a-month'];
-    const taskData = allTaskData[filterKey] || allTaskData['cs101-3-a-month'];
+    const attendanceData = allAttendanceData[filterKey as keyof typeof allAttendanceData] || [];
+    const taskData = allTaskData[filterKey as keyof typeof allTaskData] || [];
 
 
     const handleFilterChange = (filterName: string, value: string) => {
@@ -425,4 +425,5 @@ export default function ReportsPage() {
             </Card>
         </div>
     );
-}
+
+    
