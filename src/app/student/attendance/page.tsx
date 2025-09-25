@@ -14,8 +14,8 @@ const MOCK_PROFESSOR_QR_DATA = JSON.stringify({
   class: 'cs101',
   timestamp: new Date().toISOString(),
   geo: {
-    lat: 34.052235, // Mock professor's latitude
-    long: -118.243683, // Mock professor's longitude
+    latitude: 34.052235, // Mock professor's latitude
+    longitude: -118.243683, // Mock professor's longitude
   }
 });
 
@@ -49,94 +49,108 @@ export default function StudentAttendancePage() {
     const professorQrData = JSON.parse(MOCK_PROFESSOR_QR_DATA);
     
     const studentLocation = { latitude: studentCoords.latitude, longitude: studentCoords.longitude };
-    const professorLocation = { latitude: professorQrData.geo.lat, longitude: professorQrData.geo.long };
+    const professorLocation = { latitude: professorQrData.geo.latitude, longitude: professorQrData.geo.longitude };
 
     const distance = haversine(studentLocation, professorLocation);
     
-    setTimeout(() => { // Simulate verification delay
-      if (distance <= MAX_DISTANCE_METERS) {
-        toast({
-          title: "Attendance Marked!",
-          description: "You have been successfully marked as present.",
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Verification Failed",
-          description: `You are not in the classroom. Distance: ${distance.toFixed(2)}m. Please move closer and try again.`,
-        });
-      }
-      setIsVerifying(false);
-      setIsScanning(false);
-      stopCamera();
-    }, 1500);
+    if (distance <= MAX_DISTANCE_METERS) {
+      toast({
+        title: "Attendance Marked!",
+        description: "You have been successfully marked as present.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Verification Failed",
+        description: `You are not in the classroom. Distance: ${distance.toFixed(2)}m. Please move closer and try again.`,
+      });
+    }
+    setIsVerifying(false);
+    setIsScanning(false);
+    stopCamera();
   };
   
   const startScan = async () => {
     setIsScanning(true);
-    setHasLocationPermission(null);
     setHasCameraPermission(null);
+    setHasLocationPermission(null);
+  
+    const getLocation = new Promise<GeolocationPosition>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation not supported."));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+  
+    const getCamera = new Promise<MediaStream>((resolve, reject) => {
+      if (typeof navigator.mediaDevices?.getUserMedia !== 'function') {
+        reject(new Error("Camera not supported."));
+        return;
+      }
+      resolve(navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }));
+    });
+  
+    try {
+      const [position, stream] = await Promise.all([getLocation, getCamera]);
+      
+      setHasLocationPermission(true);
+      setHasCameraPermission(true);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      
+      handleVerification(position.coords);
+  
+    } catch (error: any) {
+      setIsScanning(false);
+      stopCamera();
+  
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        const isCameraError = error.message.toLowerCase().includes('camera');
+        const isLocationError = error.message.toLowerCase().includes('location');
 
-    // 1. Get Location Permission
-    if (!navigator.geolocation) {
+        if(isCameraError || error.message.includes('camera')) {
+            setHasCameraPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Camera Access Denied',
+                description: 'Please enable camera permissions in your browser settings.',
+            });
+        }
+        if(isLocationError || error.message.includes('location')) {
+            setHasLocationPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Location Access Denied',
+                description: 'Please enable location permissions to verify your position.',
+            });
+        }
+
+      } else if (error.message.includes('Geolocation')) {
         setHasLocationPermission(false);
         toast({
             variant: "destructive",
             title: "Geolocation Not Supported",
             description: "Your browser does not support geolocation.",
         });
-        setIsScanning(false);
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        setHasLocationPermission(true);
-        
-        // 2. Get Camera Permission
-        if (typeof navigator.mediaDevices?.getUserMedia !== 'function') {
-          setHasCameraPermission(false);
-          toast({
+      } else if (error.message.includes('Camera')) {
+        setHasCameraPermission(false);
+        toast({
             variant: 'destructive',
             title: 'Unsupported Browser',
             description: 'Your browser does not support camera access.',
-          });
-          setIsScanning(false);
-          return;
-        }
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-          
-          // 3. Start Verification (simulated after a delay)
-          setTimeout(() => handleVerification(position.coords), 2000);
-
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings to scan QR codes.',
-          });
-          setIsScanning(false);
-          stopCamera();
-        }
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        setHasLocationPermission(false);
-        toast({
-          variant: "destructive",
-          title: "Location Access Denied",
-          description: "Please enable location permissions in your browser settings to verify your position.",
         });
-        setIsScanning(false);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'An unexpected error occurred while accessing permissions.',
+        });
       }
-    );
+      console.error('Error starting scan:', error);
+    }
   };
 
   const handleScanClick = () => {
