@@ -45,29 +45,33 @@ export default function StudentAttendancePage() {
 
   const handleVerification = (studentCoords: GeolocationCoordinates) => {
     setIsVerifying(true);
-    // In a real app, this data would come from the QR scanner library
-    const professorQrData = JSON.parse(MOCK_PROFESSOR_QR_DATA);
     
-    const studentLocation = { latitude: studentCoords.latitude, longitude: studentCoords.longitude };
-    const professorLocation = { latitude: professorQrData.geo.latitude, longitude: professorQrData.geo.longitude };
+    // Simulate scanning and verification delay
+    setTimeout(() => {
+        // In a real app, this data would come from a QR scanner library
+        const professorQrData = JSON.parse(MOCK_PROFESSOR_QR_DATA);
+        
+        const studentLocation = { latitude: studentCoords.latitude, longitude: studentCoords.longitude };
+        const professorLocation = { latitude: professorQrData.geo.latitude, longitude: professorQrData.geo.longitude };
 
-    const distance = haversine(studentLocation, professorLocation);
-    
-    if (distance <= MAX_DISTANCE_METERS) {
-      toast({
-        title: "Attendance Marked!",
-        description: "You have been successfully marked as present.",
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Verification Failed",
-        description: `You are not in the classroom. Distance: ${distance.toFixed(2)}m. Please move closer and try again.`,
-      });
-    }
-    setIsVerifying(false);
-    setIsScanning(false);
-    stopCamera();
+        const distance = haversine(studentLocation, professorLocation);
+        
+        if (distance <= MAX_DISTANCE_METERS) {
+        toast({
+            title: "Attendance Marked!",
+            description: "You have been successfully marked as present.",
+        });
+        } else {
+        toast({
+            variant: "destructive",
+            title: "Verification Failed",
+            description: `You are not in the classroom. Distance: ${distance.toFixed(2)}m. Please move closer and try again.`,
+        });
+        }
+        setIsVerifying(false);
+        setIsScanning(false);
+        stopCamera();
+    }, 1500); // Simulate 1.5 second scan/verification time
   };
   
   const startScan = async () => {
@@ -75,78 +79,57 @@ export default function StudentAttendancePage() {
     setHasCameraPermission(null);
     setHasLocationPermission(null);
   
-    const getLocation = new Promise<GeolocationPosition>((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error("Geolocation not supported."));
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(resolve, reject);
-    });
-  
-    const getCamera = new Promise<MediaStream>((resolve, reject) => {
-      if (typeof navigator.mediaDevices?.getUserMedia !== 'function') {
-        reject(new Error("Camera not supported."));
-        return;
-      }
-      resolve(navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }));
-    });
-  
     try {
-      const [position, stream] = await Promise.all([getLocation, getCamera]);
-      
-      setHasLocationPermission(true);
+      // Request camera first to show preview immediately
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setHasCameraPermission(true);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      
-      handleVerification(position.coords);
+  
+      // Then get location and perform verification
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setHasLocationPermission(true);
+          handleVerification(position.coords);
+        },
+        (error) => {
+          setHasLocationPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Location Access Denied',
+            description: 'Please enable location permissions to verify your position.',
+          });
+          setIsScanning(false);
+          stopCamera();
+        }
+      );
   
     } catch (error: any) {
       setIsScanning(false);
       stopCamera();
   
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        const isCameraError = error.message.toLowerCase().includes('camera');
-        const isLocationError = error.message.toLowerCase().includes('location');
-
-        if(isCameraError || error.message.includes('camera')) {
-            setHasCameraPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Camera Access Denied',
-                description: 'Please enable camera permissions in your browser settings.',
-            });
-        }
-        if(isLocationError || error.message.includes('location')) {
-            setHasLocationPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Location Access Denied',
-                description: 'Please enable location permissions to verify your position.',
-            });
-        }
-
-      } else if (error.message.includes('Geolocation')) {
-        setHasLocationPermission(false);
-        toast({
-            variant: "destructive",
-            title: "Geolocation Not Supported",
-            description: "Your browser does not support geolocation.",
-        });
-      } else if (error.message.includes('Camera')) {
         setHasCameraPermission(false);
         toast({
             variant: 'destructive',
-            title: 'Unsupported Browser',
-            description: 'Your browser does not support camera access.',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings.',
+        });
+      } else if (error.message.includes('geolocation')) {
+        setHasLocationPermission(false);
+        toast({
+            variant: "destructive",
+            title: "Geolocation Error",
+            description: error.message,
         });
       } else {
+        setHasCameraPermission(false);
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: 'An unexpected error occurred while accessing permissions.',
+          title: 'Camera Error',
+          description: 'Could not access the camera. It might be in use by another application.',
         });
       }
       console.error('Error starting scan:', error);
