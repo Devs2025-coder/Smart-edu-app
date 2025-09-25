@@ -15,24 +15,29 @@ export default function StudentAttendancePage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = useRef<number>();
+  const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   const stopCamera = useCallback(() => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
   }, []);
 
-  const handleVerification = useCallback((qrDataString: string) => {
+  const handleVerification = useCallback(() => {
     setIsVerifying(true);
     setIsScanning(false);
     stopCamera();
 
-    // Simulate verification and show success message
     setTimeout(() => {
-      console.log('Scanned QR Data:', qrDataString);
       toast({
         title: "Scanning is successful!",
         description: "Your attendance has been marked.",
@@ -40,10 +45,8 @@ export default function StudentAttendancePage() {
       setIsVerifying(false);
     }, 1000);
   }, [stopCamera, toast]);
-
+  
   useEffect(() => {
-    let animationFrameId: number;
-
     const tick = () => {
       if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current) {
         const canvas = canvasRef.current;
@@ -60,29 +63,28 @@ export default function StudentAttendancePage() {
           });
   
           if (code) {
-            handleVerification(code.data);
-            return; // Stop the loop once a code is found
+            handleVerification();
+            return;
           }
         }
       }
-      if (isScanning) {
-        animationFrameId = requestAnimationFrame(tick);
-      }
+      animationFrameRef.current = requestAnimationFrame(tick);
     };
 
     const startScan = async () => {
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        streamRef.current = stream;
         setHasPermission(true);
         
         if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-          videoRef.current.oncanplay = () => {
-            if (isScanning) {
-               animationFrameId = requestAnimationFrame(tick);
-            }
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+             videoRef.current?.play().catch(e => console.error("Video play failed:", e));
           };
-          videoRef.current.play().catch(e => console.error("Video play failed:", e));
+          videoRef.current.oncanplay = () => {
+            animationFrameRef.current = requestAnimationFrame(tick);
+          };
         }
       } catch (error: any) {
         console.error("Permission error:", error);
@@ -98,10 +100,11 @@ export default function StudentAttendancePage() {
       stopCamera();
     }
 
-    // Cleanup function
     return () => {
-      cancelAnimationFrame(animationFrameId);
       stopCamera();
+       if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [isScanning, handleVerification, stopCamera, toast]);
 
@@ -111,8 +114,8 @@ export default function StudentAttendancePage() {
       setIsScanning(false);
     } else {
       setIsScanning(true);
-      setIsVerifying(false); // Reset verification state
-      setHasPermission(null); // Reset permission state to re-trigger checks
+      setIsVerifying(false);
+      setHasPermission(null);
     }
   }
 
