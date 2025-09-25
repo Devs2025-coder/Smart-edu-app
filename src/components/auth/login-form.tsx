@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from 'react';
@@ -157,7 +156,7 @@ export function LoginForm({ role }: LoginFormProps) {
                   </FormItem>
                 )}
               />
-              <Link href="#" className="text-sm font-medium text-primary hover:underline">
+              <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
                 Forgot Password?
               </Link>
             </div>
