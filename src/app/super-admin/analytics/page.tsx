@@ -41,10 +41,11 @@ const institutionStatusData = [
   { name: 'Suspended', value: 1, fill: 'hsl(var(--destructive))' },
 ];
 
-const countryData = [
-  { country: 'USA', institutions: 8, users: 1200 },
-  { country: 'Canada', institutions: 3, users: 450 },
-  { country: 'UK', institutions: 1, users: 200 },
+const stateData = [
+  { state: 'Maharashtra', institutions: 5, users: 800 },
+  { state: 'Karnataka', institutions: 3, users: 450 },
+  { state: 'Delhi', institutions: 2, users: 300 },
+  { state: 'Tamil Nadu', institutions: 2, users: 300 },
 ];
 
 const chartConfig = {
@@ -148,22 +149,22 @@ export default function AnalyticsPage() {
        </div>
        <Card>
            <CardHeader>
-                <CardTitle className="flex items-center"><Map className="mr-2"/>Geographic Distribution</CardTitle>
-                <CardDescription>Breakdown of institutions and users by country.</CardDescription>
+                <CardTitle className="flex items-center"><Map className="mr-2"/>Distribution by State (India)</CardTitle>
+                <CardDescription>Breakdown of institutions and users by state/union territory.</CardDescription>
            </CardHeader>
            <CardContent>
                <Table>
                    <TableHeader>
                        <TableRow>
-                           <TableHead>Country</TableHead>
+                           <TableHead>State/Union Territory</TableHead>
                            <TableHead>No. of Institutions</TableHead>
                            <TableHead>Total Users</TableHead>
                        </TableRow>
                    </TableHeader>
                    <TableBody>
-                       {countryData.map(data => (
-                           <TableRow key={data.country}>
-                               <TableCell className="font-medium">{data.country}</TableCell>
+                       {stateData.map(data => (
+                           <TableRow key={data.state}>
+                               <TableCell className="font-medium">{data.state}</TableCell>
                                <TableCell>{data.institutions}</TableCell>
                                <TableCell>{data.users}</TableCell>
                            </TableRow>
