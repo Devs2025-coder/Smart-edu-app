@@ -44,23 +44,36 @@ import { useMemo, useState } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Papa from 'papaparse';
 
-const attendanceData = [
-  { student: { id: 'S001', name: 'Alice Johnson' }, total: 40, attended: 38 },
-  { student: { id: 'S002', name: 'Bob Williams' }, total: 40, attended: 35 },
-  { student: { id: 'S003', name: 'Charlie Brown' }, total: 40, attended: 25 },
-  { student: { id: 'S004', name: 'Diana Miller' }, total: 40, attended: 39 },
-  { student: { id: 'S005', name: 'Ethan Davis' }, total: 40, attended: 30 },
-  { student: { id: 'S006', name: 'Fiona White' }, total: 40, attended: 36 },
-];
+const allAttendanceData = {
+    'cs101-3-a-month': [
+      { student: { id: 'S001', name: 'Alice Johnson' }, total: 40, attended: 38 },
+      { student: { id: 'S002', name: 'Bob Williams' }, total: 40, attended: 35 },
+      { student: { id: 'S003', name: 'Charlie Brown' }, total: 40, attended: 25 },
+      { student: { id: 'S004', name: 'Diana Miller' }, total: 40, attended: 39 },
+      { student: { id: 'S005', name: 'Ethan Davis' }, total: 40, attended: 30 },
+      { student: { id: 'S006', name: 'Fiona White' }, total: 40, attended: 36 },
+    ],
+    'ph203-1-a-month': [
+      { student: { id: 'S101', name: 'Gary Oldman' }, total: 35, attended: 30 },
+      { student: { id: 'S102', name: 'Helen Mirren' }, total: 35, attended: 32 },
+    ]
+};
 
-const taskData = [
-  { student: { id: 'S001', name: 'Alice Johnson' }, assigned: 5, completed: 5 },
-  { student: { id: 'S002', name: 'Bob Williams' }, assigned: 5, completed: 4 },
-  { student: { id: 'S003', name: 'Charlie Brown' }, assigned: 5, completed: 2 },
-  { student: { id: 'S004', name: 'Diana Miller' }, assigned: 5, completed: 5 },
-  { student: { id: 'S005', name: 'Ethan Davis' }, assigned: 5, completed: 3 },
-  { student: { id: 'S006', name: 'Fiona White' }, assigned: 5, completed: 4 },
-];
+const allTaskData = {
+    'cs101-3-a-month': [
+      { student: { id: 'S001', name: 'Alice Johnson' }, assigned: 5, completed: 5 },
+      { student: { id: 'S002', name: 'Bob Williams' }, assigned: 5, completed: 4 },
+      { student: { id: 'S003', name: 'Charlie Brown' }, assigned: 5, completed: 2 },
+      { student: { id: 'S004', name: 'Diana Miller' }, assigned: 5, completed: 5 },
+      { student: { id: 'S005', name: 'Ethan Davis' }, assigned: 5, completed: 3 },
+      { student: { id: 'S006', name: 'Fiona White' }, assigned: 5, completed: 4 },
+    ],
+    'ph203-1-a-month': [
+       { student: { id: 'S101', name: 'Gary Oldman' }, assigned: 4, completed: 3 },
+       { student: { id: 'S102', name: 'Helen Mirren' }, assigned: 4, completed: 4 },
+    ]
+};
+
 
 const attendanceChartConfig = {
   attended: { label: 'Attended', color: 'hsl(var(--primary))' },
@@ -74,7 +87,22 @@ const taskChartConfig = {
 
 
 export default function ReportsPage() {
-    const [activeTab, setActiveTab] = useState('attendance');
+    const [filters, setFilters] = useState({
+        class: 'cs101',
+        semester: '3',
+        section: 'a',
+        range: 'month'
+    });
+    
+    const filterKey = `${filters.class}-${filters.semester}-${filters.section}-${filters.range}`;
+    
+    const attendanceData = allAttendanceData[filterKey] || allAttendanceData['cs101-3-a-month'];
+    const taskData = allTaskData[filterKey] || allTaskData['cs101-3-a-month'];
+
+
+    const handleFilterChange = (filterName: string, value: string) => {
+        setFilters(prev => ({...prev, [filterName]: value}));
+    }
 
     const processedAttendance = useMemo(() => {
         return attendanceData.map(d => ({
@@ -82,7 +110,7 @@ export default function ReportsPage() {
             missed: d.total - d.attended,
             percentage: (d.attended / d.total) * 100
         }));
-    }, []);
+    }, [attendanceData]);
     
     const processedTasks = useMemo(() => {
         return taskData.map(d => ({
@@ -90,9 +118,10 @@ export default function ReportsPage() {
             pending: d.assigned - d.completed,
             percentage: (d.completed / d.assigned) * 100
         }));
-    }, []);
+    }, [taskData]);
 
     const avgAttendance = useMemo(() => {
+        if (processedAttendance.length === 0) return 0;
         const total = processedAttendance.reduce((acc, curr) => acc + curr.percentage, 0);
         return Math.round(total / processedAttendance.length);
     }, [processedAttendance]);
@@ -102,10 +131,12 @@ export default function ReportsPage() {
     }, [processedAttendance]);
     
     const overallCompletionRate = useMemo(() => {
+        if (taskData.length === 0) return 0;
         const totalAssigned = taskData.reduce((acc, curr) => acc + curr.assigned, 0);
         const totalCompleted = taskData.reduce((acc, curr) => acc + curr.completed, 0);
+        if (totalAssigned === 0) return 0;
         return Math.round((totalCompleted / totalAssigned) * 100);
-    }, []);
+    }, [taskData]);
 
     const getStatusBadge = (percentage: number) => {
         if (percentage >= 90) return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Excellent</Badge>;
@@ -160,7 +191,7 @@ export default function ReportsPage() {
             <Card>
                 <CardHeader>
                     <div>
-                        <CardTitle>Reports & Analytics</CardTitle>
+                        <CardTitle>Reports &amp; Analytics</CardTitle>
                         <CardDescription>
                             Analyze class performance for Computer Science 101.
                         </CardDescription>
@@ -168,7 +199,7 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                      <div className="flex flex-col md:flex-row gap-4 mb-6">
-                         <Select defaultValue="cs101">
+                         <Select value={filters.class} onValueChange={(value) => handleFilterChange('class', value)}>
                             <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Class" />
                             </SelectTrigger>
@@ -177,7 +208,7 @@ export default function ReportsPage() {
                                 <SelectItem value="ph203">Physics 203</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Select defaultValue="3">
+                         <Select value={filters.semester} onValueChange={(value) => handleFilterChange('semester', value)}>
                             <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Semester" />
                             </SelectTrigger>
@@ -187,7 +218,7 @@ export default function ReportsPage() {
                                 <SelectItem value="3">Semester 3</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Select defaultValue="a">
+                         <Select value={filters.section} onValueChange={(value) => handleFilterChange('section', value)}>
                             <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Section" />
                             </SelectTrigger>
@@ -196,7 +227,7 @@ export default function ReportsPage() {
                                 <SelectItem value="b">Section B</SelectItem>
                             </SelectContent>
                         </Select>
-                         <Select defaultValue="month">
+                         <Select value={filters.range} onValueChange={(value) => handleFilterChange('range', value)}>
                             <SelectTrigger className="w-full md:w-[180px]">
                                 <SelectValue placeholder="Select Date Range" />
                             </SelectTrigger>
@@ -224,7 +255,7 @@ export default function ReportsPage() {
                         </DropdownMenu>
 
                     </div>
-                     <Tabs defaultValue="attendance" onValueChange={setActiveTab}>
+                     <Tabs defaultValue="attendance">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="attendance">Attendance Report</TabsTrigger>
                             <TabsTrigger value="tasks">Task Performance</TabsTrigger>
@@ -266,7 +297,7 @@ export default function ReportsPage() {
                                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="text-2xl font-bold">{attendanceData[0].total}</div>
+                                        <div className="text-2xl font-bold">{attendanceData[0]?.total || 0}</div>
                                     </CardContent>
                                 </Card>
                            </div>
@@ -338,7 +369,7 @@ export default function ReportsPage() {
                                         <ListTodo className="h-4 w-4 text-muted-foreground" />
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="text-2xl font-bold">{taskData.reduce((acc, curr) => acc + curr.assigned, 0) / taskData.length}</div>
+                                        <div className="text-2xl font-bold">{taskData[0]?.assigned || 0}</div>
                                     </CardContent>
                                 </Card>
                             </div>
