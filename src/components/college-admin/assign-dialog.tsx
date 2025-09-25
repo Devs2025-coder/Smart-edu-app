@@ -32,8 +32,14 @@ import { useEffect } from 'react';
 import { Input } from '../ui/input';
 
 const formSchema = z.object({
-  value: z.string().min(1, 'Please select a value.'),
+  value: z.string().optional(),
   studentFile: z.any().optional(),
+}).refine(data => {
+    // This refinement is to ensure either value or studentFile has a value, depending on the type
+    return true; 
+}, {
+    message: "A selection or file is required.",
+    path: ["value"],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -58,7 +64,7 @@ export function AssignDialog({ isOpen, onOpenChange, onSave, type, classId, clas
       if (type === 'Professor') {
           form.reset({ value: currentProfessor !== 'Unassigned' ? currentProfessor : '' });
       } else {
-          form.reset({ value: '' });
+          form.reset({ value: '', studentFile: null });
       }
     }
   }, [isOpen, type, currentProfessor, form]);
@@ -68,8 +74,9 @@ export function AssignDialog({ isOpen, onOpenChange, onSave, type, classId, clas
       onSave({type, classId, value: data.value});
     } else {
       // In a real app, you'd handle the file upload here.
-      // For this prototype, we'll just use a placeholder value.
-      onSave({type, classId, value: 'students from file'});
+      // For this prototype, we'll just use a placeholder value if a file is selected.
+      const hasFile = data.studentFile && data.studentFile.name;
+      onSave({type, classId, value: hasFile ? `students from ${data.studentFile.name}` : 'students'});
     }
     onOpenChange(false);
   };
@@ -92,7 +99,7 @@ export function AssignDialog({ isOpen, onOpenChange, onSave, type, classId, clas
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Select Professor</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                             <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a professor to assign" />
@@ -112,11 +119,11 @@ export function AssignDialog({ isOpen, onOpenChange, onSave, type, classId, clas
                 <FormField
                     control={form.control}
                     name="studentFile"
-                    render={({ field }) => (
+                    render={({ field: { onChange, value, ...rest } }) => (
                         <FormItem>
                         <FormLabel>Upload Student List</FormLabel>
                             <FormControl>
-                                <Input type="file" accept=".csv" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} />
+                                <Input type="file" accept=".csv" onChange={(e) => onChange(e.target.files ? e.target.files[0] : null)} {...rest} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
