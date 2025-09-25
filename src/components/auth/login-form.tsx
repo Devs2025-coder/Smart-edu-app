@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -53,13 +54,15 @@ export function LoginForm({ role }: LoginFormProps) {
 
 
   
-     title = "College Login";
+     title = `${mappedRole} Login`;
      if (role === 'professor') {
         description = "Access your account to manage attendance, tasks, and schedules.";
      } else if (role === 'student') {
         description = "Access your account to view attendance, tasks, and schedules.";
      } else if (role === 'college-admin') {
         description = "Access your college admin account.";
+     } else if (role === 'super-admin') {
+        description = "Access the super admin portal.";
      } else {
         description = "Access your account.";
      }
@@ -87,6 +90,8 @@ export function LoginForm({ role }: LoginFormProps) {
       router.push('/student/dashboard');
     } else if (role === 'college-admin') {
         router.push('/college-admin/dashboard');
+    } else if (role === 'super-admin') {
+        router.push('/super-admin/dashboard');
     }
   };
 
@@ -162,12 +167,14 @@ export function LoginForm({ role }: LoginFormProps) {
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
+            {role !== 'super-admin' && (
              <p className="text-sm text-center text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link href={`/register/user?role=${role}`} className="font-medium text-primary hover:underline">
                 Register as a {mappedRole}
               </Link>
             </p>
+            )}
             <Button variant="outline" className="w-full" asChild>
                 <Link href="/">Back to Home</Link>
             </Button>

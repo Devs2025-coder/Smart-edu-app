@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -73,6 +74,16 @@ const getPortalInfo = (pathname: string) => {
       avatarFallback: 'AD',
       settingsUrl: '/college-admin/settings',
       logoutUrl: '/login?role=college-admin',
+    };
+  }
+   if (pathname.startsWith('/super-admin')) {
+    return {
+      role: 'super-admin',
+      name: 'Super Admin',
+      avatarUrl: 'https://picsum.photos/seed/super-admin/40/40',
+      avatarFallback: 'SA',
+      settingsUrl: '/super-admin/settings',
+      logoutUrl: '/login?role=super-admin',
     };
   }
   return null;
@@ -168,7 +179,7 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left">
-              <SheetHeader>
+               <SheetHeader>
                 <SheetTitle>Navigation Menu</SheetTitle>
               </SheetHeader>
               <Link href="/" className="flex items-center space-x-2 mb-6">
